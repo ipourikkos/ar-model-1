@@ -3,18 +3,31 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Community Value Maps AR</title>
+  <title>Value Lab</title>
 
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
   <style>
     :root {
-      --panel: rgba(255, 255, 255, 0.9);
+      --panel: rgba(255, 255, 255, 0.92);
+      --panel-strong: rgba(255, 255, 255, 0.98);
       --text: #111;
       --muted: #666;
       --line: rgba(0, 0, 0, 0.08);
-      --shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+      --shadow: 0 12px 34px rgba(0, 0, 0, 0.14);
       --radius: 16px;
+
+      --care: #66a96b;
+      --trust: #4c84d9;
+      --belonging: #d39a31;
+      --neglect: #8b8b8b;
+      --greed: #be4b4b;
+      --memory: #8a63d2;
+      --all: #111;
+    }
+
+    * {
+      box-sizing: border-box;
     }
 
     html, body {
@@ -24,6 +37,7 @@
       overflow: hidden;
       font-family: Arial, sans-serif;
       background: radial-gradient(circle at top left, #ffffff 0%, #f3f3f3 45%, #e8e8e8 100%);
+      color: var(--text);
     }
 
     model-viewer {
@@ -36,48 +50,103 @@
     .panel {
       background: var(--panel);
       backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
       border: 1px solid var(--line);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
 
-    .topbar {
+    .top-left {
       position: fixed;
       top: 14px;
       left: 14px;
-      z-index: 20;
+      z-index: 30;
+      width: min(360px, calc(100vw - 28px));
     }
 
     .title-card {
       padding: 14px 16px;
-      max-width: 340px;
     }
 
     .title-card h1 {
-      margin: 0 0 4px 0;
-      font-size: 18px;
+      margin: 0 0 6px 0;
+      font-size: 20px;
+      line-height: 1.1;
     }
 
     .title-card p {
       margin: 0;
       font-size: 13px;
+      line-height: 1.45;
       color: var(--muted);
     }
+
+    .top-right {
+      position: fixed;
+      top: 14px;
+      right: 14px;
+      z-index: 30;
+      width: min(520px, calc(100vw - 28px));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      align-items: flex-end;
+    }
+
+    .filters {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      padding: 10px;
+    }
+
+    .chip {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.82);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 12px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+    }
+
+    .chip:hover {
+      transform: translateY(-1px);
+      background: white;
+    }
+
+    .chip.active {
+      color: white;
+      border-color: transparent;
+    }
+
+    .chip[data-filter="all"].active { background: var(--all); }
+    .chip[data-filter="care"].active { background: var(--care); }
+    .chip[data-filter="trust"].active { background: var(--trust); }
+    .chip[data-filter="belonging"].active { background: var(--belonging); }
+    .chip[data-filter="neglect"].active { background: var(--neglect); }
+    .chip[data-filter="greed"].active { background: var(--greed); }
+    .chip[data-filter="memory"].active { background: var(--memory); }
 
     .bottom-ui {
       position: fixed;
       left: 50%;
-      bottom: 20px;
+      bottom: 18px;
       transform: translateX(-50%);
-      z-index: 20;
+      z-index: 30;
       display: flex;
       flex-direction: column;
       gap: 10px;
-      width: min(92vw, 560px);
+      width: min(94vw, 760px);
       align-items: center;
     }
 
     .ar-cta {
+      appearance: none;
       border: none;
       background: #111;
       color: white;
@@ -87,32 +156,68 @@
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 12px 30px rgba(0,0,0,0.22);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .feedback {
+    .ar-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.26);
+    }
+
+    .form-card {
       width: 100%;
-      display: grid;
-      grid-template-columns: 1fr auto;
-      gap: 8px;
-      padding: 8px;
+      padding: 10px;
     }
 
-    .feedback input {
+    .form-grid {
+      display: grid;
+      grid-template-columns: 1.6fr 0.9fr 0.9fr auto auto;
+      gap: 8px;
+      align-items: stretch;
+    }
+
+    input, select, textarea, button {
+      font: inherit;
+    }
+
+    .field, .select {
+      width: 100%;
       border: 1px solid var(--line);
       border-radius: 12px;
-      padding: 12px;
-      font-size: 14px;
-      min-width: 0;
+      padding: 12px 12px;
+      background: rgba(255,255,255,0.92);
+      color: var(--text);
+      outline: none;
     }
 
-    .feedback button {
+    .field:focus, .select:focus {
+      background: white;
+      border-color: rgba(0,0,0,0.18);
+    }
+
+    .secondary-btn, .primary-btn {
+      appearance: none;
       border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+      white-space: nowrap;
+    }
+
+    .primary-btn {
       background: #111;
       color: white;
-      padding: 12px 16px;
-      border-radius: 12px;
-      font-size: 14px;
-      cursor: pointer;
+    }
+
+    .secondary-btn {
+      background: rgba(0,0,0,0.08);
+      color: var(--text);
+    }
+
+    .secondary-btn.recording {
+      background: #be4b4b;
+      color: white;
     }
 
     .status {
@@ -120,43 +225,230 @@
       width: 100%;
       padding: 12px;
       border-radius: 12px;
-      background: rgba(255,255,255,0.95);
+      background: rgba(255,255,255,0.96);
       border: 1px solid var(--line);
       box-shadow: var(--shadow);
-      font-size: 14px;
+      font-size: 13px;
       text-align: center;
     }
 
     .loading-overlay {
       position: fixed;
       inset: 0;
-      z-index: 30;
+      z-index: 50;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(245,245,245,0.85);
+      background: rgba(245,245,245,0.86);
+      backdrop-filter: blur(6px);
     }
 
     .loading-overlay.hidden {
       display: none;
     }
 
+    .loading-box {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.95);
+      border: 1px solid var(--line);
+      box-shadow: var(--shadow);
+      text-align: center;
+      min-width: 220px;
+    }
+
     .spinner {
       width: 28px;
       height: 28px;
+      margin: 0 auto 10px;
       border: 3px solid rgba(0,0,0,0.1);
       border-top-color: black;
       border-radius: 50%;
       animation: spin 1s linear infinite;
     }
 
+    .loading-box p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+    }
+
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
 
-    @media (max-width: 700px) {
-      .feedback {
+    .hotspot {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      transform: translate(-50%, -50%);
+      pointer-events: auto;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      padding: 0;
+    }
+
+    .hotspot-dot {
+      width: 18px;
+      height: 18px;
+      border-radius: 999px;
+      border: 2px solid white;
+      box-shadow: 0 0 0 1px rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.18);
+      flex: 0 0 auto;
+    }
+
+    .hotspot-label {
+      background: rgba(255,255,255,0.95);
+      color: #111;
+      border: 1px solid rgba(0,0,0,0.08);
+      padding: 6px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+      box-shadow: 0 10px 20px rgba(0,0,0,0.12);
+      white-space: nowrap;
+      max-width: 220px;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .hotspot.user .hotspot-dot {
+      animation: pulse 2s infinite;
+    }
+
+    .hotspot.curated .hotspot-dot {
+      width: 20px;
+      height: 20px;
+      box-shadow:
+        0 0 0 3px rgba(255,255,255,0.7),
+        0 0 0 1px rgba(0,0,0,0.12),
+        0 8px 20px rgba(0,0,0,0.18);
+    }
+
+    .hotspot.hidden {
+      display: none !important;
+    }
+
+    .hotspot.dimmed {
+      opacity: 0.25;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.18); }
+      70% { box-shadow: 0 0 0 10px rgba(0,0,0,0), 0 8px 20px rgba(0,0,0,0.18); }
+      100% { box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 8px 20px rgba(0,0,0,0.18); }
+    }
+
+    .detail-card {
+      position: fixed;
+      right: 14px;
+      bottom: 14px;
+      z-index: 40;
+      width: min(360px, calc(100vw - 28px));
+      display: none;
+      padding: 14px;
+    }
+
+    .detail-card.show {
+      display: block;
+    }
+
+    .detail-head {
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .detail-title {
+      font-size: 15px;
+      font-weight: 700;
+      margin: 0;
+    }
+
+    .detail-meta {
+      font-size: 12px;
+      color: var(--muted);
+      margin-top: 4px;
+    }
+
+    .close-btn {
+      appearance: none;
+      border: none;
+      background: transparent;
+      color: #111;
+      font-size: 20px;
+      cursor: pointer;
+      line-height: 1;
+      padding: 0;
+    }
+
+    .detail-text {
+      font-size: 14px;
+      line-height: 1.5;
+      margin: 0;
+      white-space: pre-wrap;
+    }
+
+    .legend {
+      position: fixed;
+      left: 14px;
+      bottom: 14px;
+      z-index: 30;
+      padding: 10px 12px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend strong {
+      color: var(--text);
+    }
+
+    @media (max-width: 900px) {
+      .form-grid {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .form-grid .message-wrap {
+        grid-column: 1 / -1;
+      }
+
+      .form-grid .send-wrap,
+      .form-grid .voice-wrap {
+        grid-column: span 1;
+      }
+
+      .top-right {
+        width: auto;
+        max-width: calc(100vw - 28px);
+      }
+    }
+
+    @media (max-width: 640px) {
+      .top-left, .top-right {
+        width: calc(100vw - 28px);
+      }
+
+      .top-right {
+        align-items: stretch;
+      }
+
+      .filters {
+        justify-content: flex-start;
+      }
+
+      .form-grid {
         grid-template-columns: 1fr;
+      }
+
+      .ar-cta {
+        width: 100%;
+      }
+
+      .hotspot-label {
+        display: none;
       }
     }
   </style>
@@ -164,7 +456,10 @@
 
 <body>
   <div class="loading-overlay" id="loadingOverlay">
-    <div class="spinner"></div>
+    <div class="loading-box">
+      <div class="spinner"></div>
+      <p>Loading Value Lab…</p>
+    </div>
   </div>
 
   <model-viewer
@@ -178,90 +473,479 @@
     shadow-intensity="1"
     exposure="1"
     environment-image="neutral"
-    scale="0.01 0.01 0.01">
+    scale="0.01 0.01 0.01"
+    alt="Value Lab interactive 3D model">
   </model-viewer>
 
-  <div class="topbar">
+  <div class="top-left">
     <div class="panel title-card">
-      <h1>Community Value Maps</h1>
-      <p>Explore and contribute your experiences.</p>
+      <h1>Value Lab</h1>
+      <p>A living spatial archive of community value. Explore the model, reveal stories, and add your own memory, concern, or reflection.</p>
+    </div>
+  </div>
+
+  <div class="top-right">
+    <div class="panel filters" id="filters">
+      <button class="chip active" data-filter="all">All</button>
+      <button class="chip" data-filter="care">Care</button>
+      <button class="chip" data-filter="trust">Trust</button>
+      <button class="chip" data-filter="belonging">Belonging</button>
+      <button class="chip" data-filter="neglect">Neglect</button>
+      <button class="chip" data-filter="greed">Greed</button>
+      <button class="chip" data-filter="memory">Memory</button>
     </div>
   </div>
 
   <div class="bottom-ui">
     <button class="ar-cta" id="arButton" type="button">View in AR</button>
 
-    <form id="feedbackForm" class="panel feedback">
-      <input
-        type="text"
-        id="messageInput"
-        name="message"
-        placeholder="Leave a note..."
-        required
-      />
-      <button type="submit" id="sendButton">Send</button>
-    </form>
+    <div class="panel form-card">
+      <form id="contributionForm" class="form-grid">
+        <div class="message-wrap">
+          <input
+            class="field"
+            type="text"
+            id="messageInput"
+            name="message"
+            placeholder="Add a memory, feeling, loss, or local experience..."
+            maxlength="240"
+            required
+          />
+        </div>
+
+        <div>
+          <select class="select" id="valueInput" name="value">
+            <option value="care">Care</option>
+            <option value="trust">Trust</option>
+            <option value="belonging">Belonging</option>
+            <option value="neglect">Neglect</option>
+            <option value="greed">Greed</option>
+            <option value="memory" selected>Memory</option>
+          </select>
+        </div>
+
+        <div>
+          <select class="select" id="zoneInput" name="zone">
+            <option value="z1">Cluster A</option>
+            <option value="z2">Cluster B</option>
+            <option value="z3">Cluster C</option>
+            <option value="z4">Cluster D</option>
+            <option value="z5">Cluster E</option>
+            <option value="z6">Cluster F</option>
+          </select>
+        </div>
+
+        <div class="voice-wrap">
+          <button class="secondary-btn" type="button" id="voiceButton">Voice</button>
+        </div>
+
+        <div class="send-wrap">
+          <button class="primary-btn" type="submit" id="sendButton">Add</button>
+        </div>
+      </form>
+    </div>
 
     <div class="status" id="statusMessage"></div>
+  </div>
+
+  <div class="panel detail-card" id="detailCard">
+    <div class="detail-head">
+      <div>
+        <h2 class="detail-title" id="detailTitle">Story</h2>
+        <div class="detail-meta" id="detailMeta"></div>
+      </div>
+      <button class="close-btn" id="closeDetail" type="button">&times;</button>
+    </div>
+    <p class="detail-text" id="detailText"></p>
+  </div>
+
+  <div class="panel legend">
+    <strong>Curated hotspots</strong> reveal key themes. <strong>User markers</strong> build the archive live on this device.
   </div>
 
   <script>
     const viewer = document.getElementById('viewer');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const arButton = document.getElementById('arButton');
-    const feedbackForm = document.getElementById('feedbackForm');
+    const form = document.getElementById('contributionForm');
     const sendButton = document.getElementById('sendButton');
+    const messageInput = document.getElementById('messageInput');
+    const valueInput = document.getElementById('valueInput');
+    const zoneInput = document.getElementById('zoneInput');
     const statusMessage = document.getElementById('statusMessage');
+    const filters = document.getElementById('filters');
+    const detailCard = document.getElementById('detailCard');
+    const detailTitle = document.getElementById('detailTitle');
+    const detailMeta = document.getElementById('detailMeta');
+    const detailText = document.getElementById('detailText');
+    const closeDetail = document.getElementById('closeDetail');
+    const voiceButton = document.getElementById('voiceButton');
 
-    viewer.addEventListener('load', () => {
-      loadingOverlay.classList.add('hidden');
+    const STORAGE_KEY = 'value-lab-submissions-v1';
+    let activeFilter = 'all';
+
+    const zoneAnchors = {
+      z1: [
+        { position: "-0.18m 0.16m 0.02m", normal: "0m 1m 0m" },
+        { position: "-0.16m 0.19m 0.04m", normal: "0m 1m 0m" },
+        { position: "-0.14m 0.14m 0.00m", normal: "0m 1m 0m" }
+      ],
+      z2: [
+        { position: "0.06m 0.18m -0.02m", normal: "0m 1m 0m" },
+        { position: "0.09m 0.20m 0.01m", normal: "0m 1m 0m" },
+        { position: "0.12m 0.16m -0.01m", normal: "0m 1m 0m" }
+      ],
+      z3: [
+        { position: "0.18m 0.12m 0.08m", normal: "0m 1m 0m" },
+        { position: "0.20m 0.15m 0.11m", normal: "0m 1m 0m" },
+        { position: "0.16m 0.10m 0.13m", normal: "0m 1m 0m" }
+      ],
+      z4: [
+        { position: "-0.04m 0.24m 0.10m", normal: "0m 1m 0m" },
+        { position: "-0.01m 0.26m 0.12m", normal: "0m 1m 0m" },
+        { position: "-0.07m 0.22m 0.08m", normal: "0m 1m 0m" }
+      ],
+      z5: [
+        { position: "-0.20m 0.08m -0.12m", normal: "0m 1m 0m" },
+        { position: "-0.17m 0.10m -0.10m", normal: "0m 1m 0m" },
+        { position: "-0.22m 0.12m -0.14m", normal: "0m 1m 0m" }
+      ],
+      z6: [
+        { position: "0.14m 0.22m -0.14m", normal: "0m 1m 0m" },
+        { position: "0.17m 0.24m -0.11m", normal: "0m 1m 0m" },
+        { position: "0.11m 0.20m -0.16m", normal: "0m 1m 0m" }
+      ]
+    };
+
+    const curatedHotspots = [
+      {
+        id: "curated-1",
+        type: "curated",
+        title: "Lost leisure spaces",
+        text: "Residents repeatedly linked local change to the disappearance of shared leisure and youth spaces.",
+        value: "neglect",
+        zone: "z2",
+        position: "0.08m 0.18m -0.02m",
+        normal: "0m 1m 0m"
+      },
+      {
+        id: "curated-2",
+        type: "curated",
+        title: "Trust and local support",
+        text: "Long standing organisations were often valued because people trusted them more than formal systems.",
+        value: "trust",
+        zone: "z4",
+        position: "-0.02m 0.25m 0.11m",
+        normal: "0m 1m 0m"
+      },
+      {
+        id: "curated-3",
+        type: "curated",
+        title: "Belonging through everyday places",
+        text: "Ordinary places such as shops, libraries, routes, and meeting points became important because they anchored daily life.",
+        value: "belonging",
+        zone: "z1",
+        position: "-0.16m 0.18m 0.03m",
+        normal: "0m 1m 0m"
+      },
+      {
+        id: "curated-4",
+        type: "curated",
+        title: "Care networks",
+        text: "Care appeared not as a policy statement but as something built through repeated acts of support, use, and presence.",
+        value: "care",
+        zone: "z5",
+        position: "-0.19m 0.10m -0.11m",
+        normal: "0m 1m 0m"
+      }
+    ];
+
+    const valueColors = {
+      care: getCSSVar('--care'),
+      trust: getCSSVar('--trust'),
+      belonging: getCSSVar('--belonging'),
+      neglect: getCSSVar('--neglect'),
+      greed: getCSSVar('--greed'),
+      memory: getCSSVar('--memory')
+    };
+
+    function getCSSVar(name) {
+      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
+    }
+
+    function showStatus(message, isError = false) {
+      statusMessage.style.display = 'block';
+      statusMessage.textContent = message;
+      statusMessage.style.color = isError ? '#9b1c1c' : '#111';
+      clearTimeout(showStatus._timer);
+      showStatus._timer = setTimeout(() => {
+        statusMessage.style.display = 'none';
+      }, 3000);
+    }
+
+    function getSavedSubmissions() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveSubmissions(items) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
+    }
+
+    function getNextAnchor(zone, existingCountInZone) {
+      const anchors = zoneAnchors[zone] || zoneAnchors.z1;
+      return anchors[existingCountInZone % anchors.length];
+    }
+
+    function truncate(text, max = 24) {
+      return text.length > max ? text.slice(0, max - 1) + '…' : text;
+    }
+
+    function prettyValue(value) {
+      return value.charAt(0).toUpperCase() + value.slice(1);
+    }
+
+    function hotspotMetaLine(item) {
+      const source = item.type === 'curated' ? 'Curated hotspot' : 'Community contribution';
+      return `${source} • ${prettyValue(item.value)} • ${item.zone.toUpperCase()}`;
+    }
+
+    function openDetail(item) {
+      detailTitle.textContent = item.title || prettyValue(item.value);
+      detailMeta.textContent = hotspotMetaLine(item);
+      detailText.textContent = item.text;
+      detailCard.classList.add('show');
+    }
+
+    closeDetail.addEventListener('click', () => {
+      detailCard.classList.remove('show');
+    });
+
+    function createHotspotElement(item) {
+      const button = document.createElement('button');
+      button.className = `hotspot ${item.type}`;
+      button.slot = `hotspot-${item.id}`;
+      button.dataset.id = item.id;
+      button.dataset.value = item.value;
+      button.dataset.type = item.type;
+      button.dataset.position = item.position;
+      button.dataset.normal = item.normal;
+
+      button.setAttribute('data-position', item.position);
+      button.setAttribute('data-normal', item.normal);
+      button.setAttribute('aria-label', item.title || item.text);
+
+      const dot = document.createElement('span');
+      dot.className = 'hotspot-dot';
+      dot.style.background = valueColors[item.value] || '#111';
+
+      const label = document.createElement('span');
+      label.className = 'hotspot-label';
+      label.textContent = item.type === 'curated'
+        ? item.title
+        : truncate(item.text, 22);
+
+      button.appendChild(dot);
+      button.appendChild(label);
+
+      button.addEventListener('click', (e) => {
+        e.stopPropagation();
+        openDetail(item);
+      });
+
+      return button;
+    }
+
+    function clearRenderedHotspots() {
+      viewer.querySelectorAll('.hotspot').forEach(el => el.remove());
+    }
+
+    function renderHotspots() {
+      clearRenderedHotspots();
+
+      const saved = getSavedSubmissions();
+      const allItems = [...curatedHotspots, ...saved];
+
+      allItems.forEach(item => {
+        const el = createHotspotElement(item);
+        viewer.appendChild(el);
+      });
+
+      applyFilter(activeFilter);
+    }
+
+    function applyFilter(filter) {
+      activeFilter = filter;
+
+      document.querySelectorAll('.chip').forEach(chip => {
+        chip.classList.toggle('active', chip.dataset.filter === filter);
+      });
+
+      viewer.querySelectorAll('.hotspot').forEach(el => {
+        const value = el.dataset.value;
+        if (filter === 'all' || value === filter) {
+          el.classList.remove('hidden');
+          el.classList.remove('dimmed');
+        } else {
+          el.classList.add('hidden');
+        }
+      });
+    }
+
+    filters.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chip');
+      if (!btn) return;
+      applyFilter(btn.dataset.filter);
+    });
+
+    function addSubmission(text, value, zone) {
+      const saved = getSavedSubmissions();
+      const countInZone = saved.filter(item => item.zone === zone).length;
+      const anchor = getNextAnchor(zone, countInZone);
+
+      const item = {
+        id: 'user-' + Date.now(),
+        type: 'user',
+        title: 'Community voice',
+        text,
+        value,
+        zone,
+        position: anchor.position,
+        normal: anchor.normal
+      };
+
+      saved.push(item);
+      saveSubmissions(saved);
+      renderHotspots();
+      openDetail(item);
+    }
+
+    form.addEventListener('submit', (e) => {
+      e.preventDefault();
+
+      const text = messageInput.value.trim();
+      const value = valueInput.value;
+      const zone = zoneInput.value;
+
+      if (!text) return;
+
+      sendButton.disabled = true;
+      sendButton.textContent = 'Adding…';
+
+      addSubmission(text, value, zone);
+
+      form.reset();
+      valueInput.value = 'memory';
+      zoneInput.value = 'z1';
+
+      sendButton.disabled = false;
+      sendButton.textContent = 'Add';
+      showStatus('Contribution added to the Value Lab.');
     });
 
     arButton.addEventListener('click', async () => {
       try {
         if (viewer.activateAR) {
           await viewer.activateAR();
+        } else {
+          showStatus('AR is not available on this device.', true);
         }
-      } catch (e) {
+      } catch {
         showStatus('AR could not open on this device.', true);
       }
     });
 
-    function showStatus(message, isError = false) {
-      statusMessage.style.display = 'block';
-      statusMessage.textContent = message;
-      statusMessage.style.color = isError ? '#9b1c1c' : '#111';
-    }
+    viewer.addEventListener('load', () => {
+      loadingOverlay.classList.add('hidden');
+      renderHotspots();
+    });
 
-    feedbackForm.addEventListener('submit', async (e) => {
-      e.preventDefault();
+    // Voice input
+    let recognition = null;
+    let isRecording = false;
 
-      sendButton.disabled = true;
-      sendButton.textContent = 'Sending...';
-      statusMessage.style.display = 'none';
-
-      try {
-        const response = await fetch('https://formspree.io/f/xwvwbgrg', {
-          method: 'POST',
-          body: new FormData(feedbackForm),
-          headers: {
-            'Accept': 'application/json'
-          }
-        });
-
-        if (response.ok) {
-          feedbackForm.reset();
-          showStatus('Message sent.');
-        } else {
-          showStatus('Failed to send message.', true);
-        }
-      } catch (error) {
-        showStatus('Connection error. Try again.', true);
+    function setupVoice() {
+      const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+      if (!SpeechRecognition) {
+        voiceButton.disabled = true;
+        voiceButton.textContent = 'No Voice';
+        return;
       }
 
-      sendButton.disabled = false;
-      sendButton.textContent = 'Send';
-    });
+      recognition = new SpeechRecognition();
+      recognition.lang = 'en-GB';
+      recognition.interimResults = true;
+      recognition.continuous = false;
+
+      recognition.onstart = () => {
+        isRecording = true;
+        voiceButton.classList.add('recording');
+        voiceButton.textContent = 'Listening…';
+        showStatus('Voice input started.');
+      };
+
+      recognition.onresult = (event) => {
+        let transcript = '';
+        for (let i = event.resultIndex; i < event.results.length; i++) {
+          transcript += event.results[i][0].transcript;
+        }
+        messageInput.value = transcript.trim();
+      };
+
+      recognition.onerror = () => {
+        isRecording = false;
+        voiceButton.classList.remove('recording');
+        voiceButton.textContent = 'Voice';
+        showStatus('Voice input failed.', true);
+      };
+
+      recognition.onend = () => {
+        isRecording = false;
+        voiceButton.classList.remove('recording');
+        voiceButton.textContent = 'Voice';
+      };
+
+      voiceButton.addEventListener('click', () => {
+        if (!recognition) return;
+
+        if (isRecording) {
+          recognition.stop();
+        } else {
+          recognition.start();
+        }
+      });
+    }
+
+    setupVoice();
+
+    // Demo starter contributions on first load
+    if (!localStorage.getItem(STORAGE_KEY)) {
+      saveSubmissions([
+        {
+          id: 'user-demo-1',
+          type: 'user',
+          title: 'Community voice',
+          text: 'The route to the station feels important because it connects everyday life, family, and routine.',
+          value: 'memory',
+          zone: 'z3',
+          position: '0.17m 0.13m 0.10m',
+          normal: '0m 1m 0m'
+        },
+        {
+          id: 'user-demo-2',
+          type: 'user',
+          title: 'Community voice',
+          text: 'We need more youth spaces that feel safe and actually belong to local people.',
+          value: 'care',
+          zone: 'z6',
+          position: '0.15m 0.23m -0.12m',
+          normal: '0m 1m 0m'
+        }
+      ]);
+    }
   </script>
 </body>
 </html>
