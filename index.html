@@ -9,13 +9,11 @@
 
   <style>
     :root{
-      --bg:#efece7;
-      --panel:rgba(255,255,255,0.82);
-      --line:rgba(0,0,0,0.08);
+      --bg:#f2f2f2;
+      --panel:#eaeaea;
       --text:#111;
       --muted:#666;
-      --shadow:0 18px 40px rgba(0,0,0,0.10);
-      --radius:22px;
+      --cyan:#5f8788;
 
       --care:#4f7c68;
       --neglect:#9b7a32;
@@ -23,515 +21,319 @@
       --belonging:#5f7d6d;
       --trust:#7b6332;
       --efficiency:#8a7a3a;
-
-      --cyan:#5f8788;
     }
 
-    * { box-sizing:border-box; }
+    *{
+      box-sizing:border-box;
+    }
 
-    html, body {
+    html, body{
       margin:0;
-      min-height:100%;
       font-family:Arial, sans-serif;
+      background:var(--bg);
       color:var(--text);
-      background:
-        radial-gradient(circle at top left, rgba(255,255,255,0.9), transparent 30%),
-        linear-gradient(180deg, #f4f1ec 0%, #ebe6df 100%);
     }
 
     model-viewer{
       width:100%;
-      height:64vh;
-      min-height:380px;
-      background:
-        radial-gradient(circle at center, rgba(255,255,255,0.86) 0%, rgba(245,242,238,1) 70%);
-      --ar-button-display:none;
+      height:65vh;
+      background:#fff;
     }
 
     .wrap{
-      width:min(1280px, calc(100% - 28px));
-      margin:0 auto;
-      padding:14px 0 36px;
-    }
-
-    .glass{
-      background:var(--panel);
-      backdrop-filter:blur(16px);
-      -webkit-backdrop-filter:blur(16px);
-      border:1px solid rgba(255,255,255,0.55);
-      border-radius:var(--radius);
-      box-shadow:var(--shadow);
-    }
-
-    .header{
-      margin-top:14px;
-      padding:18px 20px;
-    }
-
-    .header h1{
-      margin:0;
-      font-size:clamp(28px,4vw,46px);
-      line-height:0.95;
-      letter-spacing:-0.05em;
-    }
-
-    .header p{
-      margin:8px 0 0;
-      font-size:14px;
-      color:var(--muted);
-      max-width:620px;
-      line-height:1.45;
-    }
-
-    .toolbar{
-      margin-top:14px;
-      padding:12px;
-      display:flex;
-      flex-wrap:wrap;
-      gap:10px;
-      align-items:center;
-    }
-
-    button, input, select, textarea{
-      font:inherit;
-    }
-
-    .btn, .ghost{
-      appearance:none;
-      border:none;
-      border-radius:999px;
-      padding:12px 16px;
-      cursor:pointer;
-      font-size:14px;
-      transition:transform .15s ease;
-    }
-
-    .btn:hover, .ghost:hover{
-      transform:translateY(-1px);
-    }
-
-    .btn{
-      background:#111;
-      color:#fff;
-      font-weight:700;
-      box-shadow:0 10px 24px rgba(0,0,0,0.16);
-    }
-
-    .ghost{
-      background:rgba(255,255,255,0.7);
-      border:1px solid rgba(0,0,0,0.08);
-      color:#111;
-    }
-
-    .main{
-      margin-top:16px;
-      display:grid;
-      grid-template-columns: 1.05fr 1.25fr;
-      gap:16px;
-      align-items:start;
-    }
-
-    .panel{
       padding:16px;
+      max-width:1100px;
+      margin:auto;
     }
 
-    .panel h2{
-      margin:0 0 14px;
-      font-size:15px;
-      text-transform:uppercase;
-      letter-spacing:.03em;
+    h1{
+      margin:0;
+      font-size:32px;
+      line-height:1;
+    }
+
+    p{
+      margin:8px 0 16px;
       color:var(--muted);
-    }
-
-    .instructions{
-      display:grid;
-      gap:10px;
-    }
-
-    .step{
-      padding:12px 14px;
-      border-radius:16px;
-      background:rgba(255,255,255,0.7);
-      border:1px solid var(--line);
       font-size:14px;
-      line-height:1.4;
     }
 
-    .form{
-      display:grid;
+    .controls{
+      display:flex;
       gap:10px;
-      margin-top:14px;
+      margin-bottom:16px;
     }
 
-    .form select,
-    .form textarea{
-      width:100%;
-      border:1px solid rgba(0,0,0,0.08);
-      border-radius:18px;
+    .main-btn{
+      border:none;
+      padding:12px 16px;
+      border-radius:999px;
+      cursor:pointer;
+      font-weight:bold;
+      background:black;
+      color:white;
+      font-size:14px;
+    }
+
+    .value-picker{
+      display:grid;
+      grid-template-columns:repeat(3, minmax(0,1fr));
+      gap:10px;
+      margin-bottom:12px;
+    }
+
+    .value-btn{
+      border:none;
       padding:14px 16px;
-      background:rgba(255,255,255,0.92);
-      outline:none;
+      border-radius:16px;
+      cursor:pointer;
+      color:white;
+      font-weight:bold;
       font-size:14px;
+      text-transform:capitalize;
+      opacity:0.72;
+      transform:scale(1);
+      transition:opacity .15s ease, transform .15s ease, box-shadow .15s ease;
+      box-shadow:none;
     }
 
-    .form textarea{
-      min-height:120px;
+    .value-btn:hover{
+      opacity:0.9;
+    }
+
+    .value-btn.active{
+      opacity:1;
+      transform:scale(1.02);
+      box-shadow:0 10px 24px rgba(0,0,0,0.14);
+      outline:3px solid rgba(0,0,0,0.08);
+    }
+
+    .care{background:var(--care);}
+    .neglect{background:var(--neglect);}
+    .greed{background:var(--greed);}
+    .belonging{background:var(--belonging);}
+    .trust{background:var(--trust);}
+    .efficiency{background:var(--efficiency);}
+
+    .selected-label{
+      margin:4px 0 12px;
+      font-size:13px;
+      color:var(--muted);
+      min-height:18px;
+    }
+
+    textarea{
+      width:100%;
+      padding:14px;
+      border-radius:14px;
+      border:1px solid #ddd;
+      margin-bottom:10px;
+      font-size:14px;
+      min-height:110px;
       resize:vertical;
+      font-family:Arial, sans-serif;
     }
 
     .status{
-      display:none;
       font-size:13px;
       color:var(--muted);
-      margin-top:4px;
+      margin-top:8px;
+      min-height:16px;
     }
 
-    .values-grid{
+    .grid{
       display:grid;
-      grid-template-columns: repeat(2, minmax(0,1fr));
-      gap:14px;
+      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+      gap:12px;
+      margin-top:22px;
     }
 
-    .value-card{
-      border-radius:24px;
-      overflow:hidden;
-      background:rgba(255,255,255,0.64);
-      border:1px solid rgba(255,255,255,0.55);
-      box-shadow:0 16px 34px rgba(0,0,0,0.07);
+    .value{
+      background:var(--panel);
+      border-radius:16px;
+      padding:12px;
     }
 
-    .value-head{
-      padding:14px 16px;
-      color:#fff;
-      display:flex;
-      justify-content:space-between;
-      align-items:center;
-    }
-
-    .value-head h3{
-      margin:0;
-      font-size:24px;
-      line-height:0.95;
-      letter-spacing:-0.04em;
-    }
-
-    .count{
-      min-width:36px;
-      height:36px;
-      display:grid;
-      place-items:center;
-      border-radius:999px;
-      background:rgba(255,255,255,0.18);
-      border:1px solid rgba(255,255,255,0.22);
-      font-size:12px;
-      font-weight:700;
-    }
-
-    .value-body{
-      padding:14px;
-      display:grid;
-      gap:10px;
-      min-height:170px;
-    }
-
-    .seed{
-      font-size:12px;
-      color:var(--muted);
-      padding:10px 12px;
-      border:1px dashed rgba(0,0,0,0.10);
-      border-radius:14px;
-      background:rgba(255,255,255,0.55);
-      line-height:1.35;
+    .value h3{
+      margin:0 0 10px;
+      font-size:16px;
+      text-transform:capitalize;
     }
 
     .entry{
-      font-size:13px;
-      line-height:1.4;
-      color:#fff;
       background:var(--cyan);
-      border-radius:16px;
-      padding:10px 12px;
-      box-shadow:0 10px 18px rgba(0,0,0,0.10);
-    }
-
-    .entry small{
-      display:block;
-      margin-top:6px;
-      font-size:11px;
-      opacity:0.9;
+      color:white;
+      padding:9px 10px;
+      border-radius:10px;
+      font-size:13px;
+      margin-bottom:7px;
+      line-height:1.35;
+      word-break:break-word;
     }
 
     .empty{
       color:var(--muted);
       font-size:13px;
-      padding:10px 0;
     }
 
-    .care .value-head{ background:linear-gradient(135deg, var(--care), #6b9983); }
-    .neglect .value-head{ background:linear-gradient(135deg, var(--neglect), #b79042); }
-    .greed .value-head{ background:linear-gradient(135deg, var(--greed), #875452); }
-    .belonging .value-head{ background:linear-gradient(135deg, var(--belonging), #7b9887); }
-    .trust .value-head{ background:linear-gradient(135deg, var(--trust), #9a7d48); }
-    .efficiency .value-head{ background:linear-gradient(135deg, var(--efficiency), #ab9850); }
-
-    @media (max-width: 980px){
-      .main{
-        grid-template-columns:1fr;
-      }
-    }
-
-    @media (max-width: 760px){
-      .values-grid{
-        grid-template-columns:1fr;
+    @media (max-width:700px){
+      .value-picker{
+        grid-template-columns:repeat(2, minmax(0,1fr));
       }
 
       model-viewer{
-        height:56vh;
+        height:58vh;
         min-height:340px;
       }
     }
   </style>
 </head>
 <body>
+
   <model-viewer
     id="viewer"
-    src="./model.glb?v=3"
+    src="./model.glb?v=4"
     ar
     ar-modes="webxr scene-viewer quick-look"
-    ar-scale="fixed"
     camera-controls
     auto-rotate
     shadow-intensity="1"
     exposure="1"
-    environment-image="neutral"
-    alt="Value map model">
+    environment-image="neutral">
   </model-viewer>
 
   <div class="wrap">
-    <div class="glass header">
-      <h1>Value Lab</h1>
-      <p>Read the model, choose a value, then add your thought to that value.</p>
+    <h1>Value Lab</h1>
+    <p>Read the model, choose a value, then add your thought to that value.</p>
+
+    <div class="controls">
+      <button class="main-btn" id="arBtn">View in AR</button>
     </div>
 
-    <div class="glass toolbar">
-      <button class="btn" id="arButton" type="button">View in AR</button>
-      <button class="ghost" id="clearButton" type="button">Clear Added Thoughts</button>
+    <div class="value-picker" id="valuePicker">
+      <button class="value-btn care" data-value="care" type="button">Care</button>
+      <button class="value-btn neglect" data-value="neglect" type="button">Neglect</button>
+      <button class="value-btn greed" data-value="greed" type="button">Greed</button>
+      <button class="value-btn belonging" data-value="belonging" type="button">Belonging</button>
+      <button class="value-btn trust" data-value="trust" type="button">Trust</button>
+      <button class="value-btn efficiency" data-value="efficiency" type="button">Efficiency</button>
     </div>
 
-    <div class="main">
-      <div class="glass panel">
-        <h2>Add a Thought</h2>
+    <div class="selected-label" id="selectedLabel">No value selected</div>
 
-        <div class="instructions">
-          <div class="step">1. Explore the value-map model.</div>
-          <div class="step">2. Choose one value.</div>
-          <div class="step">3. Add your thought.</div>
-        </div>
+    <textarea id="input" placeholder="Write your thought..." required></textarea>
 
-        <form class="form" id="thoughtForm">
-          <select id="valueSelect" required>
-            <option value="" selected disabled>Choose a value</option>
-            <option value="care">Care</option>
-            <option value="neglect">Neglect</option>
-            <option value="greed">Greed</option>
-            <option value="belonging">Belonging</option>
-            <option value="trust">Trust</option>
-            <option value="efficiency">Efficiency</option>
-          </select>
+    <button class="main-btn" id="send">Send</button>
+    <div class="status" id="status"></div>
 
-          <textarea
-            id="thoughtInput"
-            placeholder="Write your thought here..."
-            required
-          ></textarea>
-
-          <div style="display:flex; gap:10px; flex-wrap:wrap;">
-            <button class="btn" type="submit" id="addButton">Add Thought</button>
-            <button class="btn" type="button" id="sendButton">Send</button>
-          </div>
-        </form>
-
-        <div class="status" id="statusMessage"></div>
-      </div>
-
-      <div class="glass panel">
-        <h2>Values</h2>
-        <div class="values-grid" id="valuesGrid"></div>
-      </div>
-    </div>
+    <div class="grid" id="grid"></div>
   </div>
 
   <script>
-    const STORAGE_KEY = "value-lab-thoughts-v1";
-
     const viewer = document.getElementById("viewer");
-    const arButton = document.getElementById("arButton");
-    const clearButton = document.getElementById("clearButton");
-    const thoughtForm = document.getElementById("thoughtForm");
-    const valueSelect = document.getElementById("valueSelect");
-    const thoughtInput = document.getElementById("thoughtInput");
-    const sendButton = document.getElementById("sendButton");
-    const statusMessage = document.getElementById("statusMessage");
-    const valuesGrid = document.getElementById("valuesGrid");
+    const arBtn = document.getElementById("arBtn");
+    const send = document.getElementById("send");
+    const input = document.getElementById("input");
+    const grid = document.getElementById("grid");
+    const status = document.getElementById("status");
+    const valuePicker = document.getElementById("valuePicker");
+    const selectedLabel = document.getElementById("selectedLabel");
 
-    const valueSeedText = {
-      care: "Support, safety, holding, repair.",
-      neglect: "Absence, loss, disrepair, disregard.",
-      greed: "Extraction, excess, overbuilding, exclusion.",
-      belonging: "Attachment, familiarity, shared place.",
-      trust: "Reliability, promise, doubt, legitimacy.",
-      efficiency: "Use, access, systems, performance."
-    };
+    const STORAGE = "value-lab";
+    const values = ["care","neglect","greed","belonging","trust","efficiency"];
+    let selectedValue = "";
 
-    const valueOrder = [
-      { id: "care", title: "Care" },
-      { id: "neglect", title: "Neglect" },
-      { id: "greed", title: "Greed" },
-      { id: "belonging", title: "Belonging" },
-      { id: "trust", title: "Trust" },
-      { id: "efficiency", title: "Efficiency" }
-    ];
-
-    function showStatus(text) {
-      statusMessage.style.display = "block";
-      statusMessage.textContent = text;
-      setTimeout(() => {
-        statusMessage.style.display = "none";
-      }, 2600);
+    function getData(){
+      return JSON.parse(localStorage.getItem(STORAGE) || "[]");
     }
 
-    function getThoughts() {
-      try {
-        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
-      } catch {
-        return [];
-      }
+    function saveData(data){
+      localStorage.setItem(STORAGE, JSON.stringify(data));
     }
 
-    function saveThoughts(thoughts) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(thoughts));
-    }
+    function render(){
+      const data = getData();
 
-    function formatDate(dateString) {
-      return new Date(dateString).toLocaleString();
-    }
-
-    function renderValues() {
-      const thoughts = getThoughts();
-
-      valuesGrid.innerHTML = valueOrder.map(value => {
-        const items = thoughts.filter(t => t.value === value.id);
-
+      grid.innerHTML = values.map(v=>{
+        const items = data.filter(d=>d.value===v);
         return `
-          <div class="value-card ${value.id}">
-            <div class="value-head">
-              <h3>${value.title}</h3>
-              <div class="count">${items.length}</div>
-            </div>
-            <div class="value-body">
-              <div class="seed">${valueSeedText[value.id]}</div>
-              ${
-                items.length
-                  ? items.map(item => `
-                      <div class="entry">
-                        ${item.text}
-                        <small>${formatDate(item.createdAt)}</small>
-                      </div>
-                    `).join("")
-                  : `<div class="empty">No thoughts added yet.</div>`
-              }
-            </div>
+          <div class="value">
+            <h3>${v}</h3>
+            ${
+              items.length
+                ? items.map(i=>`<div class="entry">${i.text}</div>`).join("")
+                : `<div class="empty">No thoughts yet.</div>`
+            }
           </div>
         `;
       }).join("");
     }
 
-    arButton.addEventListener("click", async () => {
-      try {
-        if (viewer.activateAR) {
-          await viewer.activateAR();
-        }
-      } catch {
-        showStatus("AR could not open.");
-      }
-    });
-
-    thoughtForm.addEventListener("submit", (e) => {
-      e.preventDefault();
-
-      const value = valueSelect.value;
-      const text = thoughtInput.value.trim();
-
-      if (!value) {
-        showStatus("Choose a value first.");
-        return;
-      }
-
-      if (!text) {
-        showStatus("Write a thought first.");
-        return;
-      }
-
-      const thoughts = getThoughts();
-      thoughts.push({
-        value,
-        text,
-        createdAt: new Date().toISOString()
+    function updateSelectedUI(){
+      document.querySelectorAll(".value-btn").forEach(btn=>{
+        btn.classList.toggle("active", btn.dataset.value === selectedValue);
       });
 
-      saveThoughts(thoughts);
-      thoughtForm.reset();
-      renderValues();
-      showStatus("Thought added.");
+      selectedLabel.textContent = selectedValue
+        ? `Selected value: ${selectedValue}`
+        : "No value selected";
+    }
+
+    valuePicker.addEventListener("click", (e)=>{
+      const btn = e.target.closest(".value-btn");
+      if(!btn) return;
+      selectedValue = btn.dataset.value;
+      updateSelectedUI();
+      status.textContent = "";
     });
 
-    sendButton.addEventListener("click", async () => {
-      const value = valueSelect.value;
-      const text = thoughtInput.value.trim();
+    arBtn.onclick = async ()=>{
+      try{
+        if(viewer.activateAR) await viewer.activateAR();
+      }catch{
+        status.textContent = "AR could not open";
+      }
+    };
 
-      if (!value) {
-        showStatus("Choose a value first.");
+    send.onclick = async ()=>{
+      const text = input.value.trim();
+
+      if(!selectedValue){
+        status.textContent = "Choose a value";
         return;
       }
 
-      if (!text) {
-        showStatus("Write a thought first.");
+      if(!text){
+        status.textContent = "Write something";
         return;
       }
 
-      sendButton.disabled = true;
-      sendButton.textContent = "Sending...";
+      const data = getData();
+      data.push({ value:selectedValue, text });
+      saveData(data);
 
-      const formData = new FormData();
-      formData.append("message", `[${value.toUpperCase()}] ${text}`);
+      try{
+        const formData = new FormData();
+        formData.append("message", `[${selectedValue}] ${text}`);
 
-      try {
-        const response = await fetch("https://formspree.io/f/xwvwbgrg", {
-          method: "POST",
-          body: formData,
-          headers: { "Accept": "application/json" }
+        await fetch("https://formspree.io/f/xwvwbgrg", {
+          method:"POST",
+          body:formData,
+          headers:{"Accept":"application/json"}
         });
 
-        if (response.ok) {
-          showStatus("Sent.");
-        } else {
-          showStatus("Could not send.");
-        }
-      } catch {
-        showStatus("Connection problem.");
+        status.textContent = "Sent";
+      }catch{
+        status.textContent = "Saved locally";
       }
 
-      sendButton.disabled = false;
-      sendButton.textContent = "Send";
-    });
+      input.value = "";
+      render();
+    };
 
-    clearButton.addEventListener("click", () => {
-      localStorage.removeItem(STORAGE_KEY);
-      renderValues();
-      showStatus("Added thoughts cleared.");
-    });
-
-    renderValues();
+    updateSelectedUI();
+    render();
   </script>
+
 </body>
 </html>
