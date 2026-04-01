@@ -9,13 +9,13 @@
 
   <style>
     :root {
-      --bg: #f3f3f3;
+      --bg: #f2f2f2;
       --panel: rgba(255,255,255,0.95);
       --line: rgba(0,0,0,0.08);
       --text: #111;
       --muted: #666;
       --shadow: 0 10px 30px rgba(0,0,0,0.10);
-      --radius: 16px;
+      --radius: 18px;
 
       --care: #4f7c68;
       --belonging: #5f7d6d;
@@ -38,14 +38,14 @@
 
     model-viewer {
       width: 100%;
-      height: 68vh;
-      min-height: 420px;
+      height: 64vh;
+      min-height: 400px;
       background: #fff;
       --ar-button-display: none;
     }
 
     .wrap {
-      width: min(1200px, calc(100% - 24px));
+      width: min(1280px, calc(100% - 24px));
       margin: 0 auto;
       padding: 12px 0 32px;
     }
@@ -76,7 +76,7 @@
       margin: 0;
       font-size: 14px;
       color: var(--muted);
-      line-height: 1.45;
+      line-height: 1.5;
     }
 
     .controls {
@@ -87,7 +87,7 @@
       padding: 12px;
     }
 
-    .ar-btn, .send-btn {
+    .ar-btn, .action-btn {
       appearance: none;
       border: none;
       border-radius: 999px;
@@ -99,13 +99,24 @@
       font-weight: 700;
     }
 
+    .ghost-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      padding: 12px 16px;
+      font-size: 14px;
+      cursor: pointer;
+      background: #fff;
+      color: #111;
+    }
+
     .form-card {
       padding: 12px;
     }
 
     .form-grid {
       display: grid;
-      grid-template-columns: 1.1fr 0.9fr auto auto;
+      grid-template-columns: 1.2fr 0.9fr auto auto;
       gap: 8px;
       align-items: stretch;
     }
@@ -114,7 +125,7 @@
     .form-grid select {
       width: 100%;
       border: 1px solid var(--line);
-      border-radius: 12px;
+      border-radius: 14px;
       padding: 12px 14px;
       font-size: 14px;
       outline: none;
@@ -141,89 +152,199 @@
     .value-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 12px;
+      gap: 14px;
     }
 
     .value-card {
       border: 1px solid var(--line);
-      border-radius: 16px;
-      background: rgba(255,255,255,0.88);
+      border-radius: 18px;
       overflow: hidden;
+      background: rgba(255,255,255,0.92);
+      position: relative;
     }
 
     .value-head {
-      padding: 12px 14px;
+      padding: 14px 16px;
       color: white;
-      font-weight: 700;
-      font-size: 15px;
+    }
+
+    .value-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .value-head p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 1.4;
+      opacity: 0.92;
     }
 
     .value-body {
       padding: 14px;
     }
 
-    .subheading {
-      margin: 0 0 8px;
-      font-size: 13px;
-      color: var(--muted);
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 0.03em;
-    }
-
-    .quote-list, .node-list {
-      display: grid;
-      gap: 8px;
-    }
-
-    .quote, .node {
+    .node-field {
+      position: relative;
+      min-height: 270px;
       border: 1px solid var(--line);
-      border-radius: 12px;
-      padding: 10px 12px;
-      background: rgba(255,255,255,0.92);
-      font-size: 13px;
-      line-height: 1.45;
-      color: #222;
+      border-radius: 16px;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(0,0,0,0.02), transparent 28%),
+        radial-gradient(circle at 75% 30%, rgba(0,0,0,0.02), transparent 22%),
+        radial-gradient(circle at 45% 75%, rgba(0,0,0,0.02), transparent 30%),
+        rgba(255,255,255,0.72);
+      overflow: hidden;
+      padding: 10px;
     }
 
-    .node-meta {
-      display: block;
-      margin-top: 6px;
-      font-size: 11px;
-      color: var(--muted);
-    }
-
-    .empty {
-      font-size: 13px;
-      color: var(--muted);
-      padding: 6px 0;
-    }
-
-    .clear-btn {
-      appearance: none;
-      border: 1px solid var(--line);
-      background: white;
-      color: #111;
+    .node {
+      position: absolute;
+      border: none;
       border-radius: 999px;
       padding: 10px 14px;
       font-size: 13px;
+      line-height: 1.3;
+      text-align: left;
       cursor: pointer;
+      color: #fff;
+      box-shadow: 0 10px 18px rgba(0,0,0,0.14);
+      max-width: 220px;
+      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    @media (max-width: 900px) {
+    .node:hover {
+      transform: translateY(-2px) scale(1.02);
+      box-shadow: 0 16px 26px rgba(0,0,0,0.16);
+    }
+
+    .node.user {
+      outline: 2px solid rgba(255,255,255,0.7);
+      outline-offset: -2px;
+    }
+
+    .node small {
+      display: block;
+      margin-top: 4px;
+      font-size: 11px;
+      opacity: 0.9;
+    }
+
+    .legend {
+      margin-top: 10px;
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      font-size: 12px;
+      color: var(--muted);
+    }
+
+    .legend span {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+
+    .overlay {
+      position: fixed;
+      inset: 0;
+      display: none;
+      align-items: center;
+      justify-content: center;
+      background: rgba(0,0,0,0.35);
+      z-index: 100;
+      padding: 20px;
+    }
+
+    .overlay.show {
+      display: flex;
+    }
+
+    .overlay-card {
+      width: min(680px, 100%);
+      background: white;
+      border-radius: 22px;
+      box-shadow: 0 18px 50px rgba(0,0,0,0.18);
+      overflow: hidden;
+      border: 1px solid rgba(0,0,0,0.08);
+    }
+
+    .overlay-head {
+      padding: 16px 18px;
+      color: white;
+      display: flex;
+      justify-content: space-between;
+      align-items: start;
+      gap: 10px;
+    }
+
+    .overlay-head h3 {
+      margin: 0;
+      font-size: 18px;
+    }
+
+    .overlay-head p {
+      margin: 6px 0 0;
+      font-size: 13px;
+      line-height: 1.4;
+      opacity: 0.92;
+    }
+
+    .close-btn {
+      appearance: none;
+      border: none;
+      background: rgba(255,255,255,0.18);
+      color: white;
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 13px;
+      font-weight: 700;
+    }
+
+    .overlay-body {
+      padding: 18px;
+    }
+
+    .overlay-quote {
+      font-size: 20px;
+      line-height: 1.45;
+      margin: 0 0 14px;
+      color: #111;
+    }
+
+    .overlay-meta {
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.4;
+    }
+
+    @media (max-width: 950px) {
       .value-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 700px) {
+    @media (max-width: 720px) {
       .form-grid {
         grid-template-columns: 1fr;
       }
 
       model-viewer {
-        height: 58vh;
-        min-height: 360px;
+        height: 56vh;
+        min-height: 340px;
+      }
+
+      .node {
+        max-width: 170px;
+        font-size: 12px;
       }
     }
   </style>
@@ -248,12 +369,12 @@
     <div class="top">
       <div class="panel header">
         <h1>Value Lab</h1>
-        <p>Explore the model in AR and add new nodes to the value maps by choosing a category and leaving a comment.</p>
+        <p>Each value is presented as a field of experiential nodes. Tap a node to open it, then add your own node by choosing the value it belongs to.</p>
       </div>
 
       <div class="panel controls">
         <button class="ar-btn" id="arButton" type="button">View in AR</button>
-        <button class="clear-btn" id="clearNodesButton" type="button">Clear Added Nodes</button>
+        <button class="ghost-btn" id="clearNodesButton" type="button">Clear Added Nodes</button>
       </div>
 
       <div class="panel form-card">
@@ -262,7 +383,7 @@
             type="text"
             id="nodeInput"
             name="message"
-            placeholder="Add a new node or comment..."
+            placeholder="Add a new experiential node..."
             required
           />
           <select id="valueSelect" name="value" required>
@@ -273,16 +394,32 @@
             <option value="trust">Trust</option>
             <option value="efficiency">Efficiency</option>
           </select>
-          <button class="send-btn" type="submit" id="addNodeButton">Add Node</button>
-          <button class="send-btn" type="button" id="sendFormspreeButton">Send</button>
+          <button class="action-btn" type="submit" id="addNodeButton">Add Node</button>
+          <button class="action-btn" type="button" id="sendFormspreeButton">Send</button>
         </form>
         <div class="status" id="statusMessage"></div>
       </div>
     </div>
 
     <div class="panel section">
-      <h2>Maps of Value</h2>
+      <h2>Experiential Value Fields</h2>
       <div class="value-grid" id="valueGrid"></div>
+    </div>
+  </div>
+
+  <div class="overlay" id="overlay">
+    <div class="overlay-card">
+      <div class="overlay-head" id="overlayHead">
+        <div>
+          <h3 id="overlayTitle">Node</h3>
+          <p id="overlaySubtitle"></p>
+        </div>
+        <button class="close-btn" id="closeOverlay" type="button">Close</button>
+      </div>
+      <div class="overlay-body">
+        <p class="overlay-quote" id="overlayText"></p>
+        <div class="overlay-meta" id="overlayMeta"></div>
+      </div>
     </div>
   </div>
 
@@ -292,73 +429,116 @@
     const nodeForm = document.getElementById('nodeForm');
     const nodeInput = document.getElementById('nodeInput');
     const valueSelect = document.getElementById('valueSelect');
-    const addNodeButton = document.getElementById('addNodeButton');
     const sendFormspreeButton = document.getElementById('sendFormspreeButton');
     const clearNodesButton = document.getElementById('clearNodesButton');
     const statusMessage = document.getElementById('statusMessage');
     const valueGrid = document.getElementById('valueGrid');
 
-    const STORAGE_KEY = 'value-lab-user-nodes-v1';
+    const overlay = document.getElementById('overlay');
+    const overlayHead = document.getElementById('overlayHead');
+    const overlayTitle = document.getElementById('overlayTitle');
+    const overlaySubtitle = document.getElementById('overlaySubtitle');
+    const overlayText = document.getElementById('overlayText');
+    const overlayMeta = document.getElementById('overlayMeta');
+    const closeOverlay = document.getElementById('closeOverlay');
+
+    const STORAGE_KEY = 'value-lab-experiential-nodes-v1';
 
     const valueMaps = [
       {
         id: 'care',
         title: 'Care',
         color: 'var(--care)',
+        description: 'Support, protection, maintenance, and social holding.',
         quotes: [
           'There should be more affordable food places here.',
           'Fireworks should not be going off in the woodland.',
           'We need more places for young people to go.'
+        ],
+        positions: [
+          { top: 18, left: 10 },
+          { top: 52, left: 50 },
+          { top: 70, left: 18 }
         ]
       },
       {
         id: 'belonging',
         title: 'Belonging',
         color: 'var(--belonging)',
+        description: 'Attachment, familiarity, shared use, and collective place.',
         quotes: [
           'The bowling alley gave people a good place to go.',
           'The trees and the area has been taken over.',
           'Young people need their own spaces.'
+        ],
+        positions: [
+          { top: 14, left: 18 },
+          { top: 54, left: 56 },
+          { top: 72, left: 22 }
         ]
       },
       {
         id: 'neglect',
         title: 'Neglect',
         color: 'var(--neglect)',
+        description: 'Loss, disrepair, absence, and disregard.',
         quotes: [
           'The cinema used to bring us all together.',
           'They told us the buildings would not go that high.',
           'The swimming pool should be opened properly.'
+        ],
+        positions: [
+          { top: 18, left: 52 },
+          { top: 46, left: 14 },
+          { top: 72, left: 48 }
         ]
       },
       {
         id: 'greed',
         title: 'Greed',
         color: 'var(--greed)',
+        description: 'Extraction, excess, overdevelopment, and exclusion.',
         quotes: [
           'The high-rises has got too much now.',
           'It is turning into a concrete jungle.',
           'Some businesses here are too expensive for local people.'
+        ],
+        positions: [
+          { top: 20, left: 18 },
+          { top: 50, left: 52 },
+          { top: 74, left: 20 }
         ]
       },
       {
         id: 'trust',
         title: 'Trust',
         color: 'var(--trust)',
+        description: 'Reliability, promise, legitimacy, and doubt.',
         quotes: [
           'Fireworks should not be going off in the woodland.',
           'They told us the buildings would not go that high.',
           'What are you doing here and why?'
+        ],
+        positions: [
+          { top: 16, left: 48 },
+          { top: 50, left: 12 },
+          { top: 72, left: 50 }
         ]
       },
       {
         id: 'efficiency',
         title: 'Efficiency',
         color: 'var(--efficiency)',
+        description: 'Use, access, performance, convenience, and systems.',
         quotes: [
           'There needs to be more indoor places to use in winter.',
           'There should be more affordable food places here.',
           'The swimming pool should be fixed properly.'
+        ],
+        positions: [
+          { top: 18, left: 14 },
+          { top: 46, left: 54 },
+          { top: 72, left: 24 }
         ]
       }
     ];
@@ -388,40 +568,100 @@
       return date.toLocaleString();
     }
 
+    function truncate(text, max = 55) {
+      return text.length > max ? text.slice(0, max - 1) + '…' : text;
+    }
+
+    function openNode(valueTitle, valueColor, valueDescription, text, meta) {
+      overlayHead.style.background = valueColor;
+      overlayTitle.textContent = valueTitle;
+      overlaySubtitle.textContent = valueDescription;
+      overlayText.textContent = text;
+      overlayMeta.textContent = meta;
+      overlay.classList.add('show');
+    }
+
+    closeOverlay.addEventListener('click', () => {
+      overlay.classList.remove('show');
+    });
+
+    overlay.addEventListener('click', (e) => {
+      if (e.target === overlay) {
+        overlay.classList.remove('show');
+      }
+    });
+
     function renderValueMaps() {
       const userNodes = getUserNodes();
 
       valueGrid.innerHTML = valueMaps.map(value => {
-        const nodesForValue = userNodes.filter(node => node.value === value.id);
+        const builtInNodes = value.quotes.map((quote, index) => ({
+          type: 'quote',
+          text: quote,
+          top: value.positions[index].top,
+          left: value.positions[index].left
+        }));
+
+        const userNodesForValue = userNodes
+          .filter(node => node.value === value.id)
+          .map((node, index) => {
+            const row = Math.floor(index / 2);
+            const col = index % 2;
+            return {
+              ...node,
+              type: 'user',
+              top: 18 + row * 22,
+              left: col === 0 ? 8 : 54
+            };
+          });
+
+        const allNodes = [...builtInNodes, ...userNodesForValue];
 
         return `
           <div class="value-card">
             <div class="value-head" style="background:${value.color}">
-              ${value.title}
+              <h3>${value.title}</h3>
+              <p>${value.description}</p>
             </div>
             <div class="value-body">
-              <div class="subheading">Chosen Quotes</div>
-              <div class="quote-list">
-                ${value.quotes.map(quote => `<div class="quote">${quote}</div>`).join('')}
+              <div class="node-field">
+                ${allNodes.map((node, index) => `
+                  <button
+                    class="node ${node.type === 'user' ? 'user' : ''}"
+                    style="top:${node.top}%; left:${node.left}%; background:${value.color};"
+                    data-value-title="${value.title}"
+                    data-value-color="${value.color}"
+                    data-value-description="${value.description}"
+                    data-text="${node.text.replace(/"/g, '&quot;')}"
+                    data-meta="${node.type === 'user' ? `User added node • ${formatDate(node.createdAt)}` : 'Selected quote from value map'}"
+                    type="button"
+                  >
+                    ${truncate(node.text)}
+                    <small>${node.type === 'user' ? 'Added node' : 'Chosen quote'}</small>
+                  </button>
+                `).join('')}
               </div>
 
-              <div class="subheading" style="margin-top:14px;">Added Nodes</div>
-              <div class="node-list">
-                ${
-                  nodesForValue.length
-                    ? nodesForValue.map(node => `
-                      <div class="node">
-                        ${node.text}
-                        <span class="node-meta">Added ${formatDate(node.createdAt)}</span>
-                      </div>
-                    `).join('')
-                    : `<div class="empty">No added nodes yet.</div>`
-                }
+              <div class="legend">
+                <span><i class="dot" style="background:${value.color}"></i>Chosen quotes</span>
+                <span><i class="dot" style="background:${value.color}; outline:2px solid rgba(0,0,0,0.15)"></i>User nodes</span>
               </div>
             </div>
           </div>
         `;
       }).join('');
+
+      valueGrid.querySelectorAll('.node').forEach(button => {
+        button.addEventListener('click', () => {
+          openNode(
+            button.dataset.valueTitle,
+            button.dataset.valueColor,
+            button.dataset.valueDescription,
+            button.dataset.text,
+            button.dataset.meta
+          );
+        });
+      });
     }
 
     arButton.addEventListener('click', async () => {
@@ -452,7 +692,7 @@
       saveUserNodes(nodes);
       nodeInput.value = '';
       renderValueMaps();
-      showStatus('Node added.');
+      showStatus('Experiential node added.');
     });
 
     sendFormspreeButton.addEventListener('click', async () => {
@@ -460,7 +700,7 @@
       const value = valueSelect.value;
 
       if (!text) {
-        showStatus('Write a comment first.');
+        showStatus('Write a node first.');
         return;
       }
 
