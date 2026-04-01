@@ -1,446 +1,851 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Value Space</title>
-
-<style>
-html, body {
-  margin: 0;
-  height: 100%;
-  background: #f4f4f4;
-  overflow: hidden;
-  font-family: Arial, sans-serif;
-}
-
-canvas {
-  display: block;
-}
-
-.ui {
-  position: fixed;
-  bottom: 20px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 8px;
-  background: rgba(255,255,255,0.92);
-  padding: 10px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
-  z-index: 10;
-}
-
-input {
-  border: 1px solid #ccc;
-  padding: 10px 12px;
-  width: 260px;
-  border-radius: 8px;
-}
-
-button {
-  border: none;
-  background: black;
-  color: white;
-  padding: 10px 14px;
-  cursor: pointer;
-  border-radius: 8px;
-  font-weight: 700;
-}
-
-.info {
-  position: fixed;
-  top: 16px;
-  left: 16px;
-  background: rgba(255,255,255,0.9);
-  padding: 12px 14px;
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0,0,0,0.1);
-  z-index: 10;
-  max-width: 320px;
-}
-
-.info h1 {
-  margin: 0 0 6px;
-  font-size: 20px;
-}
-
-.info p {
-  margin: 0;
-  font-size: 13px;
-  color: #555;
-  line-height: 1.4;
-}
-
-.status {
-  position: fixed;
-  bottom: 78px;
-  left: 50%;
-  transform: translateX(-50%);
-  font-size: 13px;
-  color: #555;
-  background: rgba(255,255,255,0.85);
-  padding: 8px 12px;
-  border-radius: 999px;
-  z-index: 10;
-  min-width: 120px;
-  text-align: center;
-}
-</style>
-</head>
-
-<body>
-
-<div class="info">
-  <h1>Value Space</h1>
-  <p>Click a value plane, then add a thought. Built-in quotes are already placed in each field.</p>
-</div>
-
-<div class="ui">
-  <input id="input" placeholder="Add thought..." />
-  <button id="send">Send</button>
-</div>
-
-<div class="status" id="status">No value selected</div>
-
-<script type="module">
-import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js';
-import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160/examples/jsm/controls/OrbitControls.js';
-
-// SCENE
-const scene = new THREE.Scene();
-scene.background = new THREE.Color(0xf4f4f4);
-
-// CAMERA
-const camera = new THREE.PerspectiveCamera(60, window.innerWidth / window.innerHeight, 0.1, 100);
-camera.position.set(0, 1.8, 6);
-
-// RENDERER
-const renderer = new THREE.WebGLRenderer({ antialias: true });
-renderer.setSize(window.innerWidth, window.innerHeight);
-renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-document.body.appendChild(renderer.domElement);
-
-// CONTROLS
-const controls = new OrbitControls(camera, renderer.domElement);
-controls.enableDamping = true;
-controls.target.set(0, 0.7, 0);
-
-// LIGHT
-scene.add(new THREE.AmbientLight(0xffffff, 0.75));
-
-const light = new THREE.DirectionalLight(0xffffff, 1);
-light.position.set(5, 10, 7);
-scene.add(light);
-
-// DATA
-const values = [
-  {
-    name: "Care",
-    quotes: [
-      "The bowling alley gave people somewhere to go.",
-      "There should be more affordable food places here.",
-      "Fireworks should not be going off in the woodland.",
-      "There should be more places for kids to feel safer.",
-      "We need more places for young people to go."
-    ]
-  },
-  {
-    name: "Neglect",
-    quotes: [
-      "The cinema used to be there.",
-      "The swimming pool should be opened properly.",
-      "They told us the buildings would not go that high.",
-      "I was asked to pay £1500 to get a driving licence.",
-      "It is turning into a concrete jungle.",
-      "The high-rises are too much now."
-    ]
-  },
-  {
-    name: "Greed",
-    quotes: [
-      "The high-rises has got too much now.",
-      "It is turning into a concrete jungle.",
-      "They are taking away our hidden gem.",
-      "The sustainability is an excuse to build more.",
-      "Some businesses here are too expensive for local people."
-    ]
-  },
-  {
-    name: "Belonging",
-    quotes: [
-      "The trees in the area has been taken over.",
-      "Some businesses here are too expensive for local people.",
-      "If it feels good now because it is quiet, but I do not know what it will become.",
-      "Young people need their own spaces.",
-      "The bowling alley gave people a good place to go."
-    ]
-  },
-  {
-    name: "Trust",
-    quotes: [
-      "What are you doing here and why?",
-      "If it feels good now because it is quiet, but I do not know what it will become.",
-      "They told us the buildings would not go that high.",
-      "Fireworks should not be going off in the woodland.",
-      "I was asked to pay £4000 to become a councillor.",
-      "They use sustainability as an excuse to build more."
-    ]
-  },
-  {
-    name: "Efficiency",
-    quotes: [
-      "The market was so small and rubbish.",
-      "The swimming pool should be fixed properly.",
-      "There should be more affordable food places here.",
-      "There needs to be more indoor places to use in winter.",
-      "It was impossible after their car went to McDonald’s and came back while nothing had moved.",
-      "Schools."
-    ]
-  }
-];
-
-const group = new THREE.Group();
-scene.add(group);
-
-const planes = [];
-let selectedPlane = null;
-const status = document.getElementById("status");
-
-// HELPERS
-function makeTextTexture(text, options = {}) {
-  const {
-    width = 768,
-    height = 256,
-    bg = null,
-    color = "white",
-    font = "bold 30px Arial"
-  } = options;
-
-  const canvas = document.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
-  const ctx = canvas.getContext('2d');
-
-  if (bg) {
-    ctx.fillStyle = bg;
-    roundRect(ctx, 0, 0, width, height, 30);
-    ctx.fill();
-  }
-
-  ctx.fillStyle = color;
-  ctx.font = font;
-  ctx.textAlign = "center";
-  ctx.textBaseline = "middle";
-
-  const lines = wrapText(ctx, text, width * 0.82);
-  const lineHeight = 36;
-  const totalHeight = lines.length * lineHeight;
-  let y = (height - totalHeight) / 2 + lineHeight / 2;
-
-  lines.forEach(line => {
-    ctx.fillText(line, width / 2, y);
-    y += lineHeight;
-  });
-
-  const texture = new THREE.CanvasTexture(canvas);
-  texture.needsUpdate = true;
-  return texture;
-}
-
-function wrapText(ctx, text, maxWidth) {
-  const words = text.split(' ');
-  const lines = [];
-  let line = '';
-
-  for (let n = 0; n < words.length; n++) {
-    const testLine = line + words[n] + ' ';
-    const metrics = ctx.measureText(testLine);
-    if (metrics.width > maxWidth && n > 0) {
-      lines.push(line.trim());
-      line = words[n] + ' ';
-    } else {
-      line = testLine;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Maps of Value | 3D + AR</title>
+  <style>
+    :root {
+      --bg: #e8e8e6;
+      --panel: rgba(255,255,255,0.82);
+      --ink: #1f2328;
+      --muted: #5f656d;
+      --commons: #6e8f8c;
+      --state: #a38745;
+      --market: #6b494d;
+      --line: rgba(0,0,0,0.08);
+      --shadow: 0 16px 40px rgba(0,0,0,0.12);
     }
-  }
-  lines.push(line.trim());
-  return lines;
-}
 
-function roundRect(ctx, x, y, width, height, radius) {
-  ctx.beginPath();
-  ctx.moveTo(x + radius, y);
-  ctx.lineTo(x + width - radius, y);
-  ctx.quadraticCurveTo(x + width, y, x + width, y + radius);
-  ctx.lineTo(x + width, y + height - radius);
-  ctx.quadraticCurveTo(x + width, y + height, x + width - radius, y + height);
-  ctx.lineTo(x + radius, y + height);
-  ctx.quadraticCurveTo(x, y + height, x, y + height - radius);
-  ctx.lineTo(x, y + radius);
-  ctx.quadraticCurveTo(x, y, x + radius, y);
-  ctx.closePath();
-}
+    * { box-sizing: border-box; }
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: var(--bg);
+      font-family: Arial, Helvetica, sans-serif;
+      color: var(--ink);
+    }
 
-// VALUE PLANES
-values.forEach((value, i) => {
-  const geo = new THREE.PlaneGeometry(2.1, 3.2);
-  const mat = new THREE.MeshStandardMaterial({
-    color: 0xcccccc,
-    transparent: true,
-    opacity: 0.48,
-    side: THREE.DoubleSide
-  });
+    canvas { display: block; }
 
-  const plane = new THREE.Mesh(geo, mat);
+    .hud {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 10;
+    }
 
-  const angle = (i / values.length) * Math.PI * 2;
-  plane.position.set(Math.cos(angle) * 2.6, 0.2, Math.sin(angle) * 2.6);
-  plane.rotation.y = -angle + Math.PI / 2;
-  plane.userData.value = value.name;
+    .topbar {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      right: 16px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 16px;
+      pointer-events: none;
+    }
 
-  group.add(plane);
-  planes.push(plane);
+    .titleCard,
+    .legend,
+    .footer,
+    .focusBar {
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      pointer-events: auto;
+    }
 
-  // Title
-  const titleTexture = makeTextTexture(value.name, {
-    width: 512,
-    height: 180,
-    color: "black",
-    font: "bold 58px Arial"
-  });
+    .titleCard {
+      max-width: 520px;
+      padding: 14px 16px;
+    }
 
-  const titlePlane = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.5, 0.55),
-    new THREE.MeshBasicMaterial({ map: titleTexture, transparent: true })
-  );
-  titlePlane.position.copy(plane.position);
-  titlePlane.position.y += 1.55;
-  titlePlane.rotation.y = plane.rotation.y;
-  group.add(titlePlane);
+    .eyebrow {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
 
-  // Quotes around each value
-  value.quotes.forEach((quote, qIndex) => {
-    const texture = makeTextTexture(quote, {
-      width: 700,
-      height: 220,
-      bg: "#6e8788",
-      color: "white",
-      font: "bold 28px Arial"
+    .title {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 8px 0;
+      line-height: 1.1;
+    }
+
+    .subtitle {
+      font-size: 13px;
+      color: var(--muted);
+      margin: 0;
+      line-height: 1.5;
+    }
+
+    .legend {
+      padding: 12px 14px;
+      min-width: 240px;
+    }
+
+    .legend h2 {
+      font-size: 12px;
+      line-height: 1;
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      color: var(--muted);
+      margin: 0 0 10px;
+    }
+
+    .legendRow {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+      margin-bottom: 8px;
+    }
+
+    .swatch {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+    }
+
+    .focusBar {
+      position: absolute;
+      left: 16px;
+      right: 16px;
+      bottom: 72px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 10px;
+      padding: 12px;
+    }
+
+    .focusBtn, .resetBtn {
+      appearance: none;
+      border: 1px solid rgba(0,0,0,0.08);
+      background: rgba(255,255,255,0.9);
+      color: var(--ink);
+      padding: 10px 14px;
+      border-radius: 999px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease;
+    }
+
+    .focusBtn:hover, .resetBtn:hover {
+      transform: translateY(-1px);
+      background: white;
+      border-color: rgba(0,0,0,0.16);
+    }
+
+    .footer {
+      position: absolute;
+      left: 16px;
+      bottom: 16px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 540px;
+      line-height: 1.45;
+    }
+
+    .ar-note {
+      position: absolute;
+      right: 16px;
+      bottom: 16px;
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--muted);
+      max-width: 340px;
+      line-height: 1.45;
+      background: var(--panel);
+      backdrop-filter: blur(14px);
+      border: 1px solid var(--line);
+      border-radius: 18px;
+      box-shadow: var(--shadow);
+      pointer-events: auto;
+    }
+
+    #ar-button {
+      position: fixed !important;
+      right: 16px !important;
+      top: 16px !important;
+      bottom: auto !important;
+      width: auto !important;
+      border: 1px solid rgba(0,0,0,0.12) !important;
+      border-radius: 999px !important;
+      padding: 0 18px !important;
+      background: rgba(255,255,255,0.92) !important;
+      color: var(--ink) !important;
+      font-family: Arial, Helvetica, sans-serif !important;
+      font-size: 13px !important;
+      font-weight: 700 !important;
+      line-height: 42px !important;
+      height: 44px !important;
+      opacity: 1 !important;
+    }
+
+    @media (max-width: 860px) {
+      .topbar {
+        flex-direction: column;
+      }
+      .legend {
+        min-width: unset;
+        max-width: 520px;
+      }
+      .footer,
+      .ar-note {
+        max-width: calc(100% - 32px);
+      }
+      .focusBar {
+        bottom: 128px;
+      }
+    }
+
+    @media (max-width: 640px) {
+      .title { font-size: 18px; }
+      .subtitle { font-size: 12px; }
+      .focusBar {
+        gap: 8px;
+        padding: 10px;
+      }
+      .focusBtn, .resetBtn {
+        padding: 9px 12px;
+        font-size: 12px;
+      }
+      .footer,
+      .ar-note {
+        font-size: 11px;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="hud">
+    <div class="topbar">
+      <section class="titleCard">
+        <div class="eyebrow">3D Reconstruction</div>
+        <h1 class="title">Maps of Value</h1>
+        <p class="subtitle">A 3D interpretation of your page, built as six value maps with concentric quote bands and an immersive AR placement mode. Orbit on desktop, tap a value to focus, or use AR to place the whole field in real space.</p>
+      </section>
+
+      <aside class="legend">
+        <h2>Colourway</h2>
+        <div class="legendRow"><span class="swatch" style="background: var(--commons);"></span><span>Commons</span></div>
+        <div class="legendRow"><span class="swatch" style="background: var(--state);"></span><span>State</span></div>
+        <div class="legendRow"><span class="swatch" style="background: var(--market);"></span><span>Market</span></div>
+      </aside>
+    </div>
+
+    <div class="focusBar" id="focusBar"></div>
+
+    <div class="footer">
+      Based on the uploaded value map layout. The quotes live in one editable data object inside this file, so you can quickly swap wording once you verify any partially legible lines from the PDF.
+    </div>
+
+    <div class="ar-note">
+      AR mode needs a supported browser and device. On Android Chrome with WebXR support it should place the scene on a detected surface. On unsupported devices, the desktop 3D experience still works.
+    </div>
+  </div>
+
+  <script type="module">
+    import * as THREE from 'https://unpkg.com/three@0.160.0/build/three.module.js';
+    import { OrbitControls } from 'https://unpkg.com/three@0.160.0/examples/jsm/controls/OrbitControls.js';
+    import { ARButton } from 'https://unpkg.com/three@0.160.0/examples/jsm/webxr/ARButton.js';
+
+    const COLORS = {
+      bg: 0xe8e8e6,
+      commons: '#6e8f8c',
+      state: '#a38745',
+      market: '#6b494d',
+      text: '#1f2328',
+      white: '#ffffff',
+      paleLine: '#d7d6d2',
+      site: '#dad9d5'
+    };
+
+    // Edit this object to refine wording or add more quotes.
+    const MAPS = [
+      {
+        name: 'CARE',
+        quotes: {
+          commons: [
+            'There should be more affordable food places here.',
+            'The bowling alley gave people somewhere to go.',
+            'Young people need spaces to feel safer.'
+          ],
+          state: [
+            'There should be more places for children and teenagers to use in winter.',
+            'Fireworks should not be going off in the woodland.'
+          ],
+          market: [
+            'There is activity here until the funding runs out.'
+          ]
+        }
+      },
+      {
+        name: 'BELONGING',
+        quotes: {
+          commons: [
+            'People need their own spaces.',
+            'Some businesses used to be here and people miss it.',
+            'The bowling alley gave people good value.'
+          ],
+          state: [
+            'The area has good value.',
+            'It feels good now that we use it.'
+          ],
+          market: [
+            'It feels like the area has been taken over.',
+            'There needs to be a sense of people.'
+          ]
+        }
+      },
+      {
+        name: 'NEGLECT',
+        quotes: {
+          commons: [
+            'The cinema used to be here and people loved it.',
+            'The swimming pool used to bring people and property.'
+          ],
+          state: [
+            'They told us the buildings would not go that high.',
+            'There was a skate park before the construction.'
+          ],
+          market: [
+            'I was asked to pay 1500 a month.',
+            'The trees are too little and it is turning into a concrete jungle.'
+          ]
+        }
+      },
+      {
+        name: 'GREED',
+        quotes: {
+          commons: [
+            'Some businesses here are too expensive for local people.',
+            'It feels like the area has become more expensive.'
+          ],
+          state: [
+            'The area used to feel like a hidden gem.',
+            'They are asking too much now.'
+          ],
+          market: [
+            'The high rises are too much now.',
+            'It is turning into concrete.'
+          ]
+        }
+      },
+      {
+        name: 'TRUST',
+        quotes: {
+          commons: [
+            'It feels good now because it is quiet, but I do not know what it will become.',
+            'What are you doing here?'
+          ],
+          state: [
+            'Fireworks should not be going off in the woodland.',
+            'They told us the buildings would not go that high.'
+          ],
+          market: [
+            'I was asked to pay rent, 1500 a month.',
+            'They use sustainability as an excuse to build more.'
+          ]
+        }
+      },
+      {
+        name: 'EFFICIENCY',
+        quotes: {
+          commons: [
+            'There should be more affordable food places here.',
+            'The swimming pool should be fixed properly.'
+          ],
+          state: [
+            'The market was so slow I would go to McDonald’s and come back while nothing had moved.',
+            'There needs to be more places to use in winter.'
+          ],
+          market: [
+            'The prices and activities are minimal.',
+            'There should be fixed places there.'
+          ]
+        }
+      }
+    ];
+
+    const scene = new THREE.Scene();
+    scene.background = new THREE.Color(COLORS.bg);
+
+    const camera = new THREE.PerspectiveCamera(50, window.innerWidth / window.innerHeight, 0.01, 200);
+    camera.position.set(0, 8.5, 15.5);
+
+    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setSize(window.innerWidth, window.innerHeight);
+    renderer.outputColorSpace = THREE.SRGBColorSpace;
+    renderer.xr.enabled = true;
+    document.body.appendChild(renderer.domElement);
+
+    const controls = new OrbitControls(camera, renderer.domElement);
+    controls.enableDamping = true;
+    controls.target.set(0, 0.7, 0);
+    controls.minDistance = 7;
+    controls.maxDistance = 26;
+    controls.maxPolarAngle = Math.PI * 0.48;
+
+    const hemi = new THREE.HemisphereLight(0xffffff, 0xb8b2a4, 1.4);
+    scene.add(hemi);
+
+    const dir = new THREE.DirectionalLight(0xffffff, 1.2);
+    dir.position.set(8, 15, 10);
+    dir.castShadow = false;
+    scene.add(dir);
+
+    const root = new THREE.Group();
+    scene.add(root);
+
+    const site = createSitePlate();
+    root.add(site);
+
+    const mapGroups = [];
+    const positions = [
+      [-5.2, 0,  3.6],
+      [ 0.0, 0,  3.6],
+      [ 5.2, 0,  3.6],
+      [-5.2, 0, -3.6],
+      [ 0.0, 0, -3.6],
+      [ 5.2, 0, -3.6]
+    ];
+
+    MAPS.forEach((mapData, index) => {
+      const g = createValueMap(mapData);
+      g.position.set(...positions[index]);
+      root.add(g);
+      mapGroups.push(g);
     });
 
-    const quoteMesh = new THREE.Mesh(
-      new THREE.PlaneGeometry(1.4, 0.46),
-      new THREE.MeshBasicMaterial({ map: texture, transparent: true })
-    );
+    const titleMark = createBottomLabels();
+    root.add(titleMark);
 
-    const localX = (qIndex % 2 === 0 ? -0.55 : 0.55);
-    const localY = 0.95 - qIndex * 0.52;
-    const localZ = 0.12 + (qIndex * 0.02);
+    const focusBar = document.getElementById('focusBar');
+    MAPS.forEach((mapData, index) => {
+      const btn = document.createElement('button');
+      btn.className = 'focusBtn';
+      btn.textContent = mapData.name;
+      btn.addEventListener('click', () => focusMap(index));
+      focusBar.appendChild(btn);
+    });
+    const resetBtn = document.createElement('button');
+    resetBtn.className = 'resetBtn';
+    resetBtn.textContent = 'RESET VIEW';
+    resetBtn.addEventListener('click', resetView);
+    focusBar.appendChild(resetBtn);
 
-    quoteMesh.position.copy(plane.position);
-    quoteMesh.position.x += Math.cos(angle + Math.PI / 2) * localX;
-    quoteMesh.position.z += Math.sin(angle + Math.PI / 2) * localX;
-    quoteMesh.position.y += localY;
-    quoteMesh.rotation.y = plane.rotation.y;
-    quoteMesh.position.x += Math.cos(angle) * localZ;
-    quoteMesh.position.z += Math.sin(angle) * localZ;
+    let hitTestSource = null;
+    let hitTestSourceRequested = false;
+    const reticle = createReticle();
+    reticle.visible = false;
+    scene.add(reticle);
 
-    group.add(quoteMesh);
-  });
-});
+    document.body.appendChild(ARButton.createButton(renderer, {
+      requiredFeatures: ['hit-test'],
+      optionalFeatures: ['dom-overlay'],
+      domOverlay: { root: document.body }
+    }));
 
-// RAYCAST
-const raycaster = new THREE.Raycaster();
-const mouse = new THREE.Vector2();
-
-window.addEventListener('click', (e) => {
-  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
-  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
-
-  raycaster.setFromCamera(mouse, camera);
-  const intersects = raycaster.intersectObjects(planes);
-
-  if (intersects.length > 0) {
-    selectedPlane = intersects[0].object;
-    planes.forEach(p => p.material.opacity = 0.28);
-    selectedPlane.material.opacity = 0.88;
-    status.textContent = `Selected: ${selectedPlane.userData.value}`;
-  }
-});
-
-// ADD USER NODE
-document.getElementById("send").onclick = async () => {
-  const text = document.getElementById("input").value.trim();
-  if (!text || !selectedPlane) {
-    status.textContent = !selectedPlane ? "Select a value plane first" : "Write something first";
-    return;
-  }
-
-  const texture = makeTextTexture(text, {
-    width: 700,
-    height: 220,
-    bg: "#00bfcf",
-    color: "white",
-    font: "bold 28px Arial"
-  });
-
-  const node = new THREE.Mesh(
-    new THREE.PlaneGeometry(1.35, 0.46),
-    new THREE.MeshBasicMaterial({ map: texture, transparent: true })
-  );
-
-  node.position.copy(selectedPlane.position);
-  node.rotation.y = selectedPlane.rotation.y;
-
-  const offsetRight = (Math.random() - 0.5) * 1.2;
-  const offsetUp = (Math.random() * 1.7) - 0.2;
-  const offsetForward = 0.25 + Math.random() * 0.2;
-
-  const angle = Math.atan2(selectedPlane.position.z, selectedPlane.position.x);
-
-  node.position.x += Math.cos(angle + Math.PI / 2) * offsetRight;
-  node.position.z += Math.sin(angle + Math.PI / 2) * offsetRight;
-  node.position.y += offsetUp;
-  node.position.x += Math.cos(angle) * offsetForward;
-  node.position.z += Math.sin(angle) * offsetForward;
-
-  group.add(node);
-
-  try {
-    const formData = new FormData();
-    formData.append("message", `[${selectedPlane.userData.value}] ${text}`);
-
-    await fetch("https://formspree.io/f/xwvwbgrg", {
-      method: "POST",
-      body: formData,
-      headers: { "Accept": "application/json" }
+    renderer.xr.addEventListener('sessionstart', () => {
+      scene.background = null;
+      root.visible = false;
+      reticle.visible = false;
     });
 
-    status.textContent = `Added to ${selectedPlane.userData.value}`;
-  } catch {
-    status.textContent = `Added locally to ${selectedPlane.userData.value}`;
-  }
+    renderer.xr.addEventListener('sessionend', () => {
+      scene.background = new THREE.Color(COLORS.bg);
+      root.visible = true;
+      reticle.visible = false;
+      hitTestSourceRequested = false;
+      hitTestSource = null;
+      root.position.set(0, 0, 0);
+      root.scale.set(1, 1, 1);
+      root.rotation.set(0, 0, 0);
+    });
 
-  document.getElementById("input").value = "";
-};
+    renderer.domElement.addEventListener('click', () => {
+      const session = renderer.xr.getSession();
+      if (!session || !reticle.visible) return;
+      root.visible = true;
+      root.position.setFromMatrixPosition(reticle.matrix);
+      root.rotation.set(0, getYawFromMatrix(reticle.matrix), 0);
+      root.scale.setScalar(0.13);
+    });
 
-// ANIMATE
-function animate() {
-  requestAnimationFrame(animate);
-  group.rotation.y += 0.0018;
-  controls.update();
-  renderer.render(scene, camera);
-}
-animate();
+    function createSitePlate() {
+      const group = new THREE.Group();
 
-// RESIZE
-window.addEventListener('resize', () => {
-  camera.aspect = window.innerWidth / window.innerHeight;
-  camera.updateProjectionMatrix();
-  renderer.setSize(window.innerWidth, window.innerHeight);
-});
-</script>
+      const plate = new THREE.Mesh(
+        new THREE.CylinderGeometry(10.2, 10.6, 0.18, 96),
+        new THREE.MeshStandardMaterial({ color: COLORS.site, roughness: 0.95, metalness: 0.02 })
+      );
+      plate.position.y = -0.12;
+      group.add(plate);
 
+      const field = new THREE.Mesh(
+        new THREE.CircleGeometry(9.45, 96),
+        new THREE.MeshStandardMaterial({ color: 0xf1f0ed, roughness: 1 })
+      );
+      field.rotation.x = -Math.PI / 2;
+      field.position.y = -0.02;
+      group.add(field);
+
+      const ring = new THREE.Mesh(
+        new THREE.TorusGeometry(9.2, 0.035, 16, 160),
+        new THREE.MeshStandardMaterial({ color: 0xc8c5be, roughness: 0.9 })
+      );
+      ring.rotation.x = Math.PI / 2;
+      ring.position.y = -0.01;
+      group.add(ring);
+
+      return group;
+    }
+
+    function createValueMap(data) {
+      const group = new THREE.Group();
+      const titleHeight = 0.76;
+
+      const base = new THREE.Mesh(
+        new THREE.CylinderGeometry(1.82, 1.96, 0.12, 96),
+        new THREE.MeshStandardMaterial({ color: 0xf7f7f4, roughness: 0.98, metalness: 0.01 })
+      );
+      group.add(base);
+
+      const mapTexture = createMapTexture(data.name);
+      const map = new THREE.Mesh(
+        new THREE.CircleGeometry(1.72, 96),
+        new THREE.MeshStandardMaterial({ map: mapTexture, transparent: true, roughness: 1 })
+      );
+      map.rotation.x = -Math.PI / 2;
+      map.position.y = 0.07;
+      group.add(map);
+
+      const outerRing = buildRingBand({
+        radius: 1.45,
+        thickness: 0.34,
+        height: 0.14,
+        color: COLORS.commons,
+        quotes: data.quotes.commons,
+        startAngle: Math.PI * 0.08,
+        gap: 0.13
+      });
+      outerRing.position.y = 0.12;
+      group.add(outerRing);
+
+      const midRing = buildRingBand({
+        radius: 0.94,
+        thickness: 0.30,
+        height: 0.15,
+        color: COLORS.state,
+        quotes: data.quotes.state,
+        startAngle: Math.PI * 0.22,
+        gap: 0.15
+      });
+      midRing.position.y = 0.18;
+      group.add(midRing);
+
+      const innerRing = buildRingBand({
+        radius: 0.46,
+        thickness: 0.26,
+        height: 0.16,
+        color: COLORS.market,
+        quotes: data.quotes.market,
+        startAngle: Math.PI * 0.38,
+        gap: 0.18
+      });
+      innerRing.position.y = 0.24;
+      group.add(innerRing);
+
+      const title = makeTextSprite(data.name, {
+        width: 700,
+        height: 140,
+        fontSize: 64,
+        color: COLORS.text,
+        bg: 'rgba(255,255,255,0)',
+        fontWeight: '700'
+      });
+      title.position.set(0, titleHeight, 0);
+      title.scale.set(1.55, 0.32, 1);
+      group.add(title);
+
+      const pin = new THREE.Mesh(
+        new THREE.SphereGeometry(0.05, 24, 24),
+        new THREE.MeshStandardMaterial({ color: 0x1f2328, roughness: 0.6 })
+      );
+      pin.position.set(0, 0.1, 0);
+      group.add(pin);
+
+      return group;
+    }
+
+    function buildRingBand({ radius, thickness, height, color, quotes, startAngle = 0, gap = 0.12 }) {
+      const band = new THREE.Group();
+      const totalAngle = Math.PI * 2 - quotes.length * gap;
+      const step = totalAngle / quotes.length;
+
+      quotes.forEach((quote, i) => {
+        const angleLength = step;
+        const geom = new THREE.RingGeometry(radius, radius + thickness, 48, 1, startAngle + i * (step + gap), angleLength);
+        const mat = new THREE.MeshStandardMaterial({
+          color,
+          side: THREE.DoubleSide,
+          roughness: 0.86,
+          metalness: 0.02
+        });
+        const seg = new THREE.Mesh(geom, mat);
+        seg.rotation.x = -Math.PI / 2;
+        band.add(seg);
+
+        const midAngle = startAngle + i * (step + gap) + angleLength / 2;
+        const quoteRadius = radius + thickness * 0.52;
+        const x = Math.cos(midAngle) * quoteRadius;
+        const z = Math.sin(midAngle) * quoteRadius;
+
+        const plaque = makeTextSprite(quote, {
+          width: 780,
+          height: 180,
+          fontSize: 36,
+          color: '#ffffff',
+          bg: 'rgba(255,255,255,0)',
+          fontWeight: '700'
+        });
+        plaque.scale.set(0.96, 0.24, 1);
+        plaque.position.set(x, height + 0.11, z);
+        plaque.rotation.x = -Math.PI / 2;
+        plaque.rotation.z = midAngle + Math.PI / 2;
+        band.add(plaque);
+      });
+
+      return band;
+    }
+
+    function createMapTexture(seedText) {
+      const size = 1024;
+      const canvas = document.createElement('canvas');
+      canvas.width = size;
+      canvas.height = size;
+      const ctx = canvas.getContext('2d');
+
+      ctx.fillStyle = '#f7f6f3';
+      ctx.fillRect(0, 0, size, size);
+
+      ctx.translate(size / 2, size / 2);
+
+      for (let i = 0; i < 180; i++) {
+        const r = 80 + Math.random() * 360;
+        const a = Math.random() * Math.PI * 2;
+        const len = 8 + Math.random() * 26;
+        const w = 1 + Math.random() * 2;
+        ctx.save();
+        ctx.rotate(a);
+        ctx.translate(r, 0);
+        ctx.rotate(Math.random() * Math.PI);
+        ctx.strokeStyle = i % 7 === 0 ? 'rgba(200,198,193,0.55)' : 'rgba(220,218,214,0.75)';
+        ctx.lineWidth = w;
+        ctx.beginPath();
+        ctx.moveTo(-len * 0.5, 0);
+        ctx.lineTo(len * 0.5, 0);
+        ctx.stroke();
+        ctx.restore();
+      }
+
+      ctx.strokeStyle = 'rgba(208,205,198,0.75)';
+      ctx.lineWidth = 3;
+      [120, 250, 380].forEach(r => {
+        ctx.beginPath();
+        ctx.arc(0, 0, r, 0, Math.PI * 2);
+        ctx.stroke();
+      });
+
+      ctx.font = '700 22px Arial';
+      ctx.fillStyle = 'rgba(188,184,176,0.45)';
+      for (let i = 0; i < 3; i++) {
+        ctx.save();
+        ctx.rotate((Math.PI * 2 / 3) * i + 0.24);
+        ctx.textAlign = 'center';
+        ctx.fillText(seedText, 0, -430);
+        ctx.restore();
+      }
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      return texture;
+    }
+
+    function makeTextSprite(text, { width = 1024, height = 256, fontSize = 42, color = '#fff', bg = 'rgba(255,255,255,0)', fontWeight = '700' } = {}) {
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+
+      ctx.clearRect(0, 0, width, height);
+      ctx.fillStyle = bg;
+      ctx.fillRect(0, 0, width, height);
+
+      ctx.fillStyle = color;
+      ctx.font = `${fontWeight} ${fontSize}px Arial`;
+      ctx.textAlign = 'center';
+      ctx.textBaseline = 'middle';
+
+      const lines = wrapText(ctx, text, width * 0.86);
+      const lineHeight = fontSize * 1.1;
+      const totalHeight = lines.length * lineHeight;
+      let y = height / 2 - totalHeight / 2 + lineHeight / 2;
+
+      lines.forEach(line => {
+        ctx.fillText(line, width / 2, y);
+        y += lineHeight;
+      });
+
+      const texture = new THREE.CanvasTexture(canvas);
+      texture.colorSpace = THREE.SRGBColorSpace;
+      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
+      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
+      return new THREE.Sprite(material);
+    }
+
+    function wrapText(ctx, text, maxWidth) {
+      const words = text.split(' ');
+      const lines = [];
+      let line = '';
+
+      words.forEach(word => {
+        const test = line ? `${line} ${word}` : word;
+        if (ctx.measureText(test).width <= maxWidth) {
+          line = test;
+        } else {
+          if (line) lines.push(line);
+          line = word;
+        }
+      });
+      if (line) lines.push(line);
+      return lines.slice(0, 3);
+    }
+
+    function createBottomLabels() {
+      const group = new THREE.Group();
+      const left = makeTextSprite('COMMONS - STATE - MARKET', {
+        width: 900,
+        height: 120,
+        fontSize: 50,
+        color: COLORS.text,
+        bg: 'rgba(255,255,255,0)',
+        fontWeight: '700'
+      });
+      left.position.set(-6.2, 0.14, -9.25);
+      left.scale.set(3.6, 0.42, 1);
+      left.material.rotation = 0;
+      group.add(left);
+
+      const right = makeTextSprite('MAPS OF VALUE', {
+        width: 700,
+        height: 120,
+        fontSize: 50,
+        color: COLORS.text,
+        bg: 'rgba(255,255,255,0)',
+        fontWeight: '700'
+      });
+      right.position.set(6.4, 0.14, -9.25);
+      right.scale.set(2.7, 0.42, 1);
+      group.add(right);
+
+      return group;
+    }
+
+    function focusMap(index) {
+      const target = mapGroups[index].position;
+      controls.target.set(target.x, 0.55, target.z);
+      camera.position.set(target.x, 4.2, target.z + 5.7);
+    }
+
+    function resetView() {
+      controls.target.set(0, 0.7, 0);
+      camera.position.set(0, 8.5, 15.5);
+    }
+
+    function createReticle() {
+      const geometry = new THREE.RingGeometry(0.075, 0.11, 32).rotateX(-Math.PI / 2);
+      const material = new THREE.MeshBasicMaterial({ color: 0xffffff, opacity: 0.9, transparent: true });
+      const reticleMesh = new THREE.Mesh(geometry, material);
+      reticleMesh.matrixAutoUpdate = false;
+      return reticleMesh;
+    }
+
+    function getYawFromMatrix(matrix) {
+      const position = new THREE.Vector3();
+      const quaternion = new THREE.Quaternion();
+      const scale = new THREE.Vector3();
+      matrix.decompose(position, quaternion, scale);
+      const euler = new THREE.Euler().setFromQuaternion(quaternion, 'YXZ');
+      return euler.y;
+    }
+
+    function handleXR(frame) {
+      const session = renderer.xr.getSession();
+      if (!session || !frame) return;
+
+      const referenceSpace = renderer.xr.getReferenceSpace();
+      const viewerSpace = renderer.xr.getReferenceSpace();
+
+      if (!hitTestSourceRequested) {
+        session.requestReferenceSpace('viewer').then((space) => {
+          session.requestHitTestSource({ space }).then((source) => {
+            hitTestSource = source;
+          });
+        });
+
+        session.addEventListener('end', () => {
+          hitTestSourceRequested = false;
+          hitTestSource = null;
+        });
+
+        hitTestSourceRequested = true;
+      }
+
+      if (hitTestSource) {
+        const hits = frame.getHitTestResults(hitTestSource);
+        if (hits.length) {
+          const hit = hits[0];
+          const pose = hit.getPose(referenceSpace);
+          reticle.visible = true;
+          reticle.matrix.fromArray(pose.transform.matrix);
+        } else {
+          reticle.visible = false;
+        }
+      }
+    }
+
+    window.addEventListener('resize', onResize);
+
+    function onResize() {
+      camera.aspect = window.innerWidth / window.innerHeight;
+      camera.updateProjectionMatrix();
+      renderer.setSize(window.innerWidth, window.innerHeight);
+    }
+
+    renderer.setAnimationLoop((time, frame) => {
+      controls.update();
+      mapGroups.forEach((group, i) => {
+        group.rotation.y += 0.0012 + i * 0.00008;
+      });
+      handleXR(frame);
+      renderer.render(scene, camera);
+    });
+  </script>
 </body>
 </html>
