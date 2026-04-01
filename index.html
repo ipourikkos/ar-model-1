@@ -110,29 +110,14 @@
     iPhone AR is not WebXR placement here. The AR button passes the GLB through the iOS Quick Look path handled by model-viewer.
   </div>
 
-  <model-viewer
-    id="mv"
-    src="./model.glb"
-    alt="Maps of Value 3D model"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    camera-controls
-    touch-action="pan-y"
-    shadow-intensity="1"
-    shadow-softness="0.8"
-    exposure="1"
-    environment-image="neutral"
-    skybox-image=""
-    poster=""
-    auto-rotate
-    auto-rotate-delay="0"
-    rotation-per-second="8deg"
-    camera-orbit="25deg 72deg 220%"
-    min-camera-orbit="auto 20deg auto"
-    max-camera-orbit="auto 95deg auto"
-    field-of-view="28deg"
-    ar-scale="fixed"
-    xr-environment>
-  </model-viewer>
+ <model-viewer
+  src="model.glb"
+  ar
+  ar-modes="webxr scene-viewer quick-look"
+  camera-controls
+  auto-rotate
+  scale="0.1 0.1 0.1"
+  ar-scale="fixed">
+</model-viewer>
 </body>
 </html>
