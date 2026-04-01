@@ -9,20 +9,22 @@
 
   <style>
     :root {
-      --bg: #f2f2f2;
-      --panel: rgba(255,255,255,0.95);
+      --bg: #ece9e3;
+      --panel: rgba(255,255,255,0.78);
       --line: rgba(0,0,0,0.08);
       --text: #111;
-      --muted: #666;
-      --shadow: 0 10px 30px rgba(0,0,0,0.10);
-      --radius: 18px;
+      --muted: rgba(17,17,17,0.56);
+      --shadow: 0 20px 50px rgba(0,0,0,0.10);
+      --radius: 26px;
 
-      --care: #4f7c68;
-      --belonging: #5f7d6d;
-      --neglect: #9b7a32;
-      --greed: #6e3a3a;
-      --trust: #7b6332;
-      --efficiency: #8a7a3a;
+      --node-grey-1: #d8d3cb;
+      --node-grey-2: #cfc9c0;
+      --node-grey-3: #e3ddd5;
+
+      /* PDF system colours */
+      --commons: #5f8788; /* cyan/teal */
+      --state: #6e4348;   /* burgundy/red */
+      --market: #9a7a33;  /* yellow/ochre */
     }
 
     * { box-sizing: border-box; }
@@ -31,83 +33,99 @@
       margin: 0;
       width: 100%;
       min-height: 100%;
-      background: var(--bg);
       font-family: Arial, sans-serif;
       color: var(--text);
+      background:
+        radial-gradient(circle at top left, rgba(255,255,255,0.9), transparent 28%),
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.4), transparent 24%),
+        linear-gradient(180deg, #f3f0eb 0%, #ebe6df 100%);
     }
 
     model-viewer {
       width: 100%;
-      height: 64vh;
+      height: 66vh;
       min-height: 400px;
-      background: #fff;
+      background:
+        radial-gradient(circle at center, rgba(255,255,255,0.88) 0%, rgba(245,242,238,1) 70%);
       --ar-button-display: none;
     }
 
     .wrap {
-      width: min(1280px, calc(100% - 24px));
+      width: min(1320px, calc(100% - 28px));
       margin: 0 auto;
-      padding: 12px 0 32px;
+      padding: 14px 0 36px;
     }
 
-    .panel {
+    .glass {
       background: var(--panel);
-      border: 1px solid var(--line);
+      backdrop-filter: blur(18px);
+      -webkit-backdrop-filter: blur(18px);
+      border: 1px solid rgba(255,255,255,0.55);
       border-radius: var(--radius);
       box-shadow: var(--shadow);
     }
 
     .top {
       display: grid;
-      gap: 12px;
-      margin-top: 12px;
+      gap: 14px;
+      margin-top: 14px;
     }
 
     .header {
-      padding: 16px 18px;
+      display: flex;
+      justify-content: space-between;
+      gap: 16px;
+      align-items: end;
+      padding: 18px 20px;
     }
 
     .header h1 {
-      margin: 0 0 6px;
-      font-size: 22px;
+      margin: 0;
+      font-size: clamp(28px, 4vw, 44px);
+      line-height: 0.95;
+      letter-spacing: -0.05em;
     }
 
     .header p {
-      margin: 0;
+      margin: 8px 0 0;
       font-size: 14px;
       color: var(--muted);
-      line-height: 1.5;
+      max-width: 520px;
     }
 
     .controls {
       display: flex;
       flex-wrap: wrap;
       gap: 10px;
-      align-items: center;
       padding: 12px;
+      align-items: center;
     }
 
-    .ar-btn, .action-btn {
+    .ar-btn, .add-btn, .send-btn, .ghost-btn {
       appearance: none;
       border: none;
       border-radius: 999px;
       padding: 12px 16px;
       font-size: 14px;
       cursor: pointer;
+      transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+    }
+
+    .ar-btn:hover, .add-btn:hover, .send-btn:hover, .ghost-btn:hover {
+      transform: translateY(-1px);
+    }
+
+    .ar-btn, .add-btn, .send-btn {
       background: #111;
       color: #fff;
       font-weight: 700;
+      box-shadow: 0 10px 24px rgba(0,0,0,0.16);
     }
 
     .ghost-btn {
-      appearance: none;
-      border: 1px solid var(--line);
-      border-radius: 999px;
-      padding: 12px 16px;
-      font-size: 14px;
-      cursor: pointer;
-      background: #fff;
+      background: rgba(255,255,255,0.72);
       color: #111;
+      border: 1px solid rgba(0,0,0,0.08);
     }
 
     .form-card {
@@ -116,140 +134,168 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 1.2fr 0.9fr auto auto;
-      gap: 8px;
+      grid-template-columns: 1.35fr 0.8fr auto auto;
+      gap: 10px;
       align-items: stretch;
     }
 
     .form-grid input,
     .form-grid select {
       width: 100%;
-      border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px 14px;
+      border: 1px solid rgba(0,0,0,0.08);
+      border-radius: 18px;
+      padding: 14px 16px;
       font-size: 14px;
       outline: none;
-      background: #fff;
+      background: rgba(255,255,255,0.86);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
     }
 
     .status {
       display: none;
-      margin-top: 8px;
+      margin-top: 10px;
       font-size: 13px;
       color: var(--muted);
+      padding: 0 4px;
     }
 
     .section {
       margin-top: 16px;
-      padding: 14px;
+      padding: 16px;
     }
 
     .section h2 {
-      margin: 0 0 12px;
-      font-size: 18px;
+      margin: 0 0 14px;
+      font-size: 15px;
+      font-weight: 700;
+      letter-spacing: 0.02em;
+      color: var(--muted);
+      text-transform: uppercase;
     }
 
     .value-grid {
       display: grid;
       grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 14px;
+      gap: 16px;
     }
 
     .value-card {
-      border: 1px solid var(--line);
-      border-radius: 18px;
-      overflow: hidden;
-      background: rgba(255,255,255,0.92);
       position: relative;
+      overflow: hidden;
+      border-radius: 30px;
+      min-height: 360px;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.28), transparent 26%),
+        radial-gradient(circle at 80% 22%, rgba(255,255,255,0.22), transparent 22%),
+        radial-gradient(circle at 50% 78%, rgba(255,255,255,0.18), transparent 28%),
+        linear-gradient(180deg, var(--node-grey-1), var(--node-grey-2));
+      border: 1px solid rgba(255,255,255,0.55);
+      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+    }
+
+    .value-card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at center, transparent 35%, rgba(255,255,255,0.14) 36%, transparent 58%);
+      pointer-events: none;
+      opacity: 0.8;
     }
 
     .value-head {
-      padding: 14px 16px;
-      color: white;
+      position: relative;
+      z-index: 2;
+      padding: 18px 18px 8px;
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      gap: 12px;
     }
 
-    .value-head h3 {
+    .value-title {
       margin: 0;
-      font-size: 18px;
+      font-size: clamp(26px, 3vw, 36px);
+      letter-spacing: -0.05em;
+      line-height: 0.95;
+      color: #111;
     }
 
-    .value-head p {
-      margin: 6px 0 0;
+    .value-count {
+      min-width: 42px;
+      height: 42px;
+      display: grid;
+      place-items: center;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.38);
+      color: #111;
       font-size: 13px;
-      line-height: 1.4;
-      opacity: 0.92;
+      font-weight: 700;
+      border: 1px solid rgba(255,255,255,0.35);
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .value-body {
-      padding: 14px;
+      position: relative;
+      z-index: 2;
+      padding: 12px 16px 16px;
+      height: calc(100% - 64px);
     }
 
     .node-field {
       position: relative;
+      height: 100%;
       min-height: 270px;
-      border: 1px solid var(--line);
-      border-radius: 16px;
-      background:
-        radial-gradient(circle at 20% 20%, rgba(0,0,0,0.02), transparent 28%),
-        radial-gradient(circle at 75% 30%, rgba(0,0,0,0.02), transparent 22%),
-        radial-gradient(circle at 45% 75%, rgba(0,0,0,0.02), transparent 30%),
-        rgba(255,255,255,0.72);
+      border-radius: 22px;
       overflow: hidden;
-      padding: 10px;
+      background:
+        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)),
+        rgba(255,255,255,0.10);
+      border: 1px solid rgba(255,255,255,0.22);
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.20);
+      padding: 16px;
+      display: flex;
+      align-content: flex-start;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      gap: 10px;
     }
 
-    .node {
-      position: absolute;
+    .quote-chip {
+      appearance: none;
       border: none;
       border-radius: 999px;
-      padding: 10px 14px;
+      padding: 12px 16px;
       font-size: 13px;
-      line-height: 1.3;
+      line-height: 1.25;
       text-align: left;
       cursor: pointer;
       color: #fff;
-      box-shadow: 0 10px 18px rgba(0,0,0,0.14);
-      max-width: 220px;
+      box-shadow: 0 12px 22px rgba(0,0,0,0.14);
+      max-width: 100%;
       transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
-    .node:hover {
+    .quote-chip:hover {
       transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 16px 26px rgba(0,0,0,0.16);
+      box-shadow: 0 16px 26px rgba(0,0,0,0.18);
     }
 
-    .node.user {
-      outline: 2px solid rgba(255,255,255,0.7);
-      outline-offset: -2px;
-    }
-
-    .node small {
+    .quote-chip small {
       display: block;
-      margin-top: 4px;
+      margin-top: 5px;
       font-size: 11px;
-      opacity: 0.9;
+      opacity: 0.88;
     }
 
-    .legend {
-      margin-top: 10px;
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .legend span {
-      display: inline-flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    .dot {
-      width: 10px;
-      height: 10px;
-      border-radius: 999px;
-      display: inline-block;
+    .commons { background: var(--commons); }
+    .state { background: var(--state); }
+    .market { background: var(--market); }
+    .user-added {
+      background: var(--commons);
+      outline: 2px solid rgba(255,255,255,0.72);
+      outline-offset: -2px;
     }
 
     .overlay {
@@ -258,9 +304,11 @@
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(0,0,0,0.35);
+      background: rgba(10,10,10,0.28);
       z-index: 100;
-      padding: 20px;
+      padding: 18px;
+      backdrop-filter: blur(8px);
+      -webkit-backdrop-filter: blur(8px);
     }
 
     .overlay.show {
@@ -268,40 +316,36 @@
     }
 
     .overlay-card {
-      width: min(680px, 100%);
-      background: white;
-      border-radius: 22px;
-      box-shadow: 0 18px 50px rgba(0,0,0,0.18);
+      width: min(760px, 100%);
+      background: rgba(255,255,255,0.94);
+      border-radius: 30px;
+      box-shadow: 0 28px 70px rgba(0,0,0,0.18);
       overflow: hidden;
-      border: 1px solid rgba(0,0,0,0.08);
+      border: 1px solid rgba(255,255,255,0.75);
     }
 
     .overlay-head {
-      padding: 16px 18px;
-      color: white;
+      padding: 18px 20px;
+      background: linear-gradient(180deg, #d8d3cb, #cbc5bc);
       display: flex;
       justify-content: space-between;
       align-items: start;
-      gap: 10px;
+      gap: 12px;
     }
 
     .overlay-head h3 {
       margin: 0;
-      font-size: 18px;
-    }
-
-    .overlay-head p {
-      margin: 6px 0 0;
-      font-size: 13px;
-      line-height: 1.4;
-      opacity: 0.92;
+      font-size: 28px;
+      line-height: 0.95;
+      letter-spacing: -0.04em;
+      color: #111;
     }
 
     .close-btn {
       appearance: none;
       border: none;
-      background: rgba(255,255,255,0.18);
-      color: white;
+      background: rgba(255,255,255,0.55);
+      color: #111;
       border-radius: 999px;
       padding: 8px 12px;
       cursor: pointer;
@@ -310,29 +354,36 @@
     }
 
     .overlay-body {
-      padding: 18px;
+      padding: 22px 20px 24px;
     }
 
     .overlay-quote {
-      font-size: 20px;
-      line-height: 1.45;
-      margin: 0 0 14px;
+      font-size: clamp(22px, 3vw, 34px);
+      line-height: 1.18;
+      margin: 0 0 16px;
       color: #111;
+      letter-spacing: -0.03em;
+      max-width: 18ch;
     }
 
     .overlay-meta {
       font-size: 13px;
       color: var(--muted);
-      line-height: 1.4;
+      line-height: 1.45;
     }
 
-    @media (max-width: 950px) {
+    @media (max-width: 980px) {
       .value-grid {
         grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 720px) {
+    @media (max-width: 760px) {
+      .header {
+        flex-direction: column;
+        align-items: flex-start;
+      }
+
       .form-grid {
         grid-template-columns: 1fr;
       }
@@ -340,11 +391,6 @@
       model-viewer {
         height: 56vh;
         min-height: 340px;
-      }
-
-      .node {
-        max-width: 170px;
-        font-size: 12px;
       }
     }
   </style>
@@ -367,23 +413,25 @@
 
   <div class="wrap">
     <div class="top">
-      <div class="panel header">
-        <h1>Value Lab</h1>
-        <p>Each value is presented as a field of experiential nodes. Tap a node to open it, then add your own node by choosing the value it belongs to.</p>
+      <div class="glass header">
+        <div>
+          <h1>Value Lab</h1>
+          <p>Tap a quote. Add a quote. Build the overlap.</p>
+        </div>
       </div>
 
-      <div class="panel controls">
+      <div class="glass controls">
         <button class="ar-btn" id="arButton" type="button">View in AR</button>
-        <button class="ghost-btn" id="clearNodesButton" type="button">Clear Added Nodes</button>
+        <button class="ghost-btn" id="clearNodesButton" type="button">Clear Added Quotes</button>
       </div>
 
-      <div class="panel form-card">
+      <div class="glass form-card">
         <form id="nodeForm" class="form-grid">
           <input
             type="text"
             id="nodeInput"
             name="message"
-            placeholder="Add a new experiential node..."
+            placeholder="Add a quote..."
             required
           />
           <select id="valueSelect" name="value" required>
@@ -394,25 +442,24 @@
             <option value="trust">Trust</option>
             <option value="efficiency">Efficiency</option>
           </select>
-          <button class="action-btn" type="submit" id="addNodeButton">Add Node</button>
-          <button class="action-btn" type="button" id="sendFormspreeButton">Send</button>
+          <button class="add-btn" type="submit">Add</button>
+          <button class="send-btn" type="button" id="sendFormspreeButton">Send</button>
         </form>
         <div class="status" id="statusMessage"></div>
       </div>
     </div>
 
-    <div class="panel section">
-      <h2>Experiential Value Fields</h2>
+    <div class="glass section">
+      <h2>Value Nodes</h2>
       <div class="value-grid" id="valueGrid"></div>
     </div>
   </div>
 
   <div class="overlay" id="overlay">
     <div class="overlay-card">
-      <div class="overlay-head" id="overlayHead">
+      <div class="overlay-head">
         <div>
           <h3 id="overlayTitle">Node</h3>
-          <p id="overlaySubtitle"></p>
         </div>
         <button class="close-btn" id="closeOverlay" type="button">Close</button>
       </div>
@@ -435,110 +482,81 @@
     const valueGrid = document.getElementById('valueGrid');
 
     const overlay = document.getElementById('overlay');
-    const overlayHead = document.getElementById('overlayHead');
     const overlayTitle = document.getElementById('overlayTitle');
-    const overlaySubtitle = document.getElementById('overlaySubtitle');
     const overlayText = document.getElementById('overlayText');
     const overlayMeta = document.getElementById('overlayMeta');
     const closeOverlay = document.getElementById('closeOverlay');
 
-    const STORAGE_KEY = 'value-lab-experiential-nodes-v1';
+    const STORAGE_KEY = 'value-lab-overlap-nodes-v1';
 
     const valueMaps = [
       {
         id: 'care',
         title: 'Care',
-        color: 'var(--care)',
-        description: 'Support, protection, maintenance, and social holding.',
         quotes: [
-          'There should be more affordable food places here.',
-          'Fireworks should not be going off in the woodland.',
-          'We need more places for young people to go.'
-        ],
-        positions: [
-          { top: 18, left: 10 },
-          { top: 52, left: 50 },
-          { top: 70, left: 18 }
+          { text: 'The bowling alley gave people somewhere to go.', system: 'commons' },
+          { text: 'There should be more affordable food places here.', system: 'market' },
+          { text: 'Fireworks should not be going off in the woodland.', system: 'market' },
+          { text: 'There should be more places for kids to feel safer.', system: 'state' },
+          { text: 'We need more places for young people to go.', system: 'commons' }
         ]
       },
       {
         id: 'belonging',
         title: 'Belonging',
-        color: 'var(--belonging)',
-        description: 'Attachment, familiarity, shared use, and collective place.',
         quotes: [
-          'The bowling alley gave people a good place to go.',
-          'The trees and the area has been taken over.',
-          'Young people need their own spaces.'
-        ],
-        positions: [
-          { top: 14, left: 18 },
-          { top: 54, left: 56 },
-          { top: 72, left: 22 }
+          { text: 'The trees in the area has been taken over.', system: 'state' },
+          { text: 'Some businesses here are too expensive for local people.', system: 'state' },
+          { text: 'If it feels good now because it is quiet, but I do not know what it will become.', system: 'commons' },
+          { text: 'Young people need their own spaces.', system: 'commons' },
+          { text: 'The bowling alley gave people a good place to go.', system: 'commons' }
         ]
       },
       {
         id: 'neglect',
         title: 'Neglect',
-        color: 'var(--neglect)',
-        description: 'Loss, disrepair, absence, and disregard.',
         quotes: [
-          'The cinema used to bring us all together.',
-          'They told us the buildings would not go that high.',
-          'The swimming pool should be opened properly.'
-        ],
-        positions: [
-          { top: 18, left: 52 },
-          { top: 46, left: 14 },
-          { top: 72, left: 48 }
+          { text: 'The cinema used to be there.', system: 'commons' },
+          { text: 'The swimming pool should be opened properly.', system: 'commons' },
+          { text: 'They told us the buildings would not go that high.', system: 'market' },
+          { text: 'I was asked to pay £1500 to get a driving licence.', system: 'market' },
+          { text: 'It is turning into a concrete jungle.', system: 'state' },
+          { text: 'The high-rises are too much now.', system: 'state' }
         ]
       },
       {
         id: 'greed',
         title: 'Greed',
-        color: 'var(--greed)',
-        description: 'Extraction, excess, overdevelopment, and exclusion.',
         quotes: [
-          'The high-rises has got too much now.',
-          'It is turning into a concrete jungle.',
-          'Some businesses here are too expensive for local people.'
-        ],
-        positions: [
-          { top: 20, left: 18 },
-          { top: 50, left: 52 },
-          { top: 74, left: 20 }
+          { text: 'The high-rises has got too much now.', system: 'state' },
+          { text: 'It is turning into a concrete jungle.', system: 'state' },
+          { text: 'They are taking away our hidden gem.', system: 'state' },
+          { text: 'The sustainability is an excuse to build more.', system: 'state' },
+          { text: 'Some businesses here are too expensive for local people.', system: 'state' }
         ]
       },
       {
         id: 'trust',
         title: 'Trust',
-        color: 'var(--trust)',
-        description: 'Reliability, promise, legitimacy, and doubt.',
         quotes: [
-          'Fireworks should not be going off in the woodland.',
-          'They told us the buildings would not go that high.',
-          'What are you doing here and why?'
-        ],
-        positions: [
-          { top: 16, left: 48 },
-          { top: 50, left: 12 },
-          { top: 72, left: 50 }
+          { text: 'What are you doing here and why?', system: 'commons' },
+          { text: 'If it feels good now because it is quiet, but I do not know what it will become.', system: 'commons' },
+          { text: 'They told us the buildings would not go that high.', system: 'market' },
+          { text: 'Fireworks should not be going off in the woodland.', system: 'market' },
+          { text: 'I was asked to pay £4000 to become a councillor.', system: 'state' },
+          { text: 'They use sustainability as an excuse to build more.', system: 'state' }
         ]
       },
       {
         id: 'efficiency',
         title: 'Efficiency',
-        color: 'var(--efficiency)',
-        description: 'Use, access, performance, convenience, and systems.',
         quotes: [
-          'There needs to be more indoor places to use in winter.',
-          'There should be more affordable food places here.',
-          'The swimming pool should be fixed properly.'
-        ],
-        positions: [
-          { top: 18, left: 14 },
-          { top: 46, left: 54 },
-          { top: 72, left: 24 }
+          { text: 'The market was so small and rubbish.', system: 'commons' },
+          { text: 'The swimming pool should be fixed properly.', system: 'commons' },
+          { text: 'There should be more affordable food places here.', system: 'state' },
+          { text: 'There needs to be more indoor places to use in winter.', system: 'market' },
+          { text: 'It was impossible after their car went to McDonald’s and came back while nothing had moved.', system: 'market' },
+          { text: 'Schools.', system: 'market' }
         ]
       }
     ];
@@ -548,7 +566,7 @@
       statusMessage.textContent = text;
       setTimeout(() => {
         statusMessage.style.display = 'none';
-      }, 3000);
+      }, 2600);
     }
 
     function getUserNodes() {
@@ -568,14 +586,13 @@
       return date.toLocaleString();
     }
 
-    function truncate(text, max = 55) {
-      return text.length > max ? text.slice(0, max - 1) + '…' : text;
+    function sharedQuoteCount(text) {
+      const all = valueMaps.flatMap(v => v.quotes.map(q => q.text));
+      return all.filter(q => q === text).length;
     }
 
-    function openNode(valueTitle, valueColor, valueDescription, text, meta) {
-      overlayHead.style.background = valueColor;
-      overlayTitle.textContent = valueTitle;
-      overlaySubtitle.textContent = valueDescription;
+    function openNode(title, text, meta) {
+      overlayTitle.textContent = title;
       overlayText.textContent = text;
       overlayMeta.textContent = meta;
       overlay.classList.add('show');
@@ -586,77 +603,70 @@
     });
 
     overlay.addEventListener('click', (e) => {
-      if (e.target === overlay) {
-        overlay.classList.remove('show');
-      }
+      if (e.target === overlay) overlay.classList.remove('show');
     });
 
     function renderValueMaps() {
       const userNodes = getUserNodes();
 
       valueGrid.innerHTML = valueMaps.map(value => {
-        const builtInNodes = value.quotes.map((quote, index) => ({
-          type: 'quote',
-          text: quote,
-          top: value.positions[index].top,
-          left: value.positions[index].left
-        }));
-
-        const userNodesForValue = userNodes
-          .filter(node => node.value === value.id)
-          .map((node, index) => {
-            const row = Math.floor(index / 2);
-            const col = index % 2;
-            return {
-              ...node,
-              type: 'user',
-              top: 18 + row * 22,
-              left: col === 0 ? 8 : 54
-            };
-          });
-
-        const allNodes = [...builtInNodes, ...userNodesForValue];
+        const valueUserNodes = userNodes.filter(node => node.value === value.id);
+        const allChips = [
+          ...value.quotes.map(q => ({
+            text: q.text,
+            system: q.system,
+            kind: 'quote'
+          })),
+          ...valueUserNodes.map(q => ({
+            text: q.text,
+            system: 'user-added',
+            kind: 'user',
+            createdAt: q.createdAt
+          }))
+        ];
 
         return `
           <div class="value-card">
-            <div class="value-head" style="background:${value.color}">
-              <h3>${value.title}</h3>
-              <p>${value.description}</p>
+            <div class="value-head">
+              <h3 class="value-title">${value.title}</h3>
+              <div class="value-count">${allChips.length}</div>
             </div>
             <div class="value-body">
               <div class="node-field">
-                ${allNodes.map((node, index) => `
+                ${allChips.map(chip => `
                   <button
-                    class="node ${node.type === 'user' ? 'user' : ''}"
-                    style="top:${node.top}%; left:${node.left}%; background:${value.color};"
-                    data-value-title="${value.title}"
-                    data-value-color="${value.color}"
-                    data-value-description="${value.description}"
-                    data-text="${node.text.replace(/"/g, '&quot;')}"
-                    data-meta="${node.type === 'user' ? `User added node • ${formatDate(node.createdAt)}` : 'Selected quote from value map'}"
+                    class="quote-chip ${chip.system}"
                     type="button"
+                    data-title="${value.title}"
+                    data-text="${chip.text.replace(/"/g, '&quot;')}"
+                    data-meta="${
+                      chip.kind === 'user'
+                        ? `Added quote • ${formatDate(chip.createdAt)}`
+                        : sharedQuoteCount(chip.text) > 1
+                          ? `Shared across value nodes`
+                          : `Single value quote`
+                    }"
                   >
-                    ${truncate(node.text)}
-                    <small>${node.type === 'user' ? 'Added node' : 'Chosen quote'}</small>
+                    ${chip.text}
+                    <small>${
+                      chip.kind === 'user'
+                        ? 'Added'
+                        : sharedQuoteCount(chip.text) > 1
+                          ? 'Shared'
+                          : 'Quote'
+                    }</small>
                   </button>
                 `).join('')}
-              </div>
-
-              <div class="legend">
-                <span><i class="dot" style="background:${value.color}"></i>Chosen quotes</span>
-                <span><i class="dot" style="background:${value.color}; outline:2px solid rgba(0,0,0,0.15)"></i>User nodes</span>
               </div>
             </div>
           </div>
         `;
       }).join('');
 
-      valueGrid.querySelectorAll('.node').forEach(button => {
+      valueGrid.querySelectorAll('.quote-chip').forEach(button => {
         button.addEventListener('click', () => {
           openNode(
-            button.dataset.valueTitle,
-            button.dataset.valueColor,
-            button.dataset.valueDescription,
+            button.dataset.title,
             button.dataset.text,
             button.dataset.meta
           );
@@ -666,11 +676,9 @@
 
     arButton.addEventListener('click', async () => {
       try {
-        if (viewer.activateAR) {
-          await viewer.activateAR();
-        }
-      } catch (error) {
-        showStatus('AR could not open on this device.');
+        if (viewer.activateAR) await viewer.activateAR();
+      } catch {
+        showStatus('AR could not open.');
       }
     });
 
@@ -679,7 +687,6 @@
 
       const text = nodeInput.value.trim();
       const value = valueSelect.value;
-
       if (!text) return;
 
       const nodes = getUserNodes();
@@ -692,7 +699,7 @@
       saveUserNodes(nodes);
       nodeInput.value = '';
       renderValueMaps();
-      showStatus('Experiential node added.');
+      showStatus('Quote added.');
     });
 
     sendFormspreeButton.addEventListener('click', async () => {
@@ -700,7 +707,7 @@
       const value = valueSelect.value;
 
       if (!text) {
-        showStatus('Write a node first.');
+        showStatus('Write a quote first.');
         return;
       }
 
@@ -720,9 +727,9 @@
         if (response.ok) {
           showStatus('Message sent.');
         } else {
-          showStatus('Could not send message.');
+          showStatus('Could not send.');
         }
-      } catch (error) {
+      } catch {
         showStatus('Connection problem.');
       }
 
@@ -733,7 +740,7 @@
     clearNodesButton.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
       renderValueMaps();
-      showStatus('Added nodes cleared.');
+      showStatus('Added quotes cleared.');
     });
 
     renderValueMaps();
