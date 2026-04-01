@@ -9,22 +9,22 @@
 
   <style>
     :root {
-      --bg: #ece9e3;
-      --panel: rgba(255,255,255,0.78);
+      --bg1: #f3f0eb;
+      --bg2: #eae5de;
+      --panel: rgba(255,255,255,0.72);
       --line: rgba(0,0,0,0.08);
       --text: #111;
       --muted: rgba(17,17,17,0.56);
       --shadow: 0 20px 50px rgba(0,0,0,0.10);
       --radius: 26px;
 
-      --node-grey-1: #d8d3cb;
-      --node-grey-2: #cfc9c0;
-      --node-grey-3: #e3ddd5;
+      --node-grey-1: #ddd7cf;
+      --node-grey-2: #cbc4bb;
+      --node-grey-3: #eee8e0;
 
-      /* PDF system colours */
-      --commons: #5f8788; /* cyan/teal */
-      --state: #6e4348;   /* burgundy/red */
-      --market: #9a7a33;  /* yellow/ochre */
+      --commons: #5f8788;
+      --state: #6e4348;
+      --market: #9a7a33;
     }
 
     * { box-sizing: border-box; }
@@ -37,14 +37,14 @@
       color: var(--text);
       background:
         radial-gradient(circle at top left, rgba(255,255,255,0.9), transparent 28%),
-        radial-gradient(circle at bottom right, rgba(255,255,255,0.4), transparent 24%),
-        linear-gradient(180deg, #f3f0eb 0%, #ebe6df 100%);
+        radial-gradient(circle at bottom right, rgba(255,255,255,0.35), transparent 24%),
+        linear-gradient(180deg, var(--bg1) 0%, var(--bg2) 100%);
     }
 
     model-viewer {
       width: 100%;
-      height: 66vh;
-      min-height: 400px;
+      height: 62vh;
+      min-height: 380px;
       background:
         radial-gradient(circle at center, rgba(255,255,255,0.88) 0%, rgba(245,242,238,1) 70%);
       --ar-button-display: none;
@@ -72,16 +72,12 @@
     }
 
     .header {
-      display: flex;
-      justify-content: space-between;
-      gap: 16px;
-      align-items: end;
-      padding: 18px 20px;
+      padding: 20px;
     }
 
     .header h1 {
       margin: 0;
-      font-size: clamp(28px, 4vw, 44px);
+      font-size: clamp(30px, 4vw, 48px);
       line-height: 0.95;
       letter-spacing: -0.05em;
     }
@@ -90,7 +86,7 @@
       margin: 8px 0 0;
       font-size: 14px;
       color: var(--muted);
-      max-width: 520px;
+      max-width: 540px;
     }
 
     .controls {
@@ -108,7 +104,7 @@
       padding: 12px 16px;
       font-size: 14px;
       cursor: pointer;
-      transition: transform 0.16s ease, box-shadow 0.16s ease, opacity 0.16s ease;
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
     }
 
     .ar-btn:hover, .add-btn:hover, .send-btn:hover, .ghost-btn:hover {
@@ -148,7 +144,6 @@
       font-size: 14px;
       outline: none;
       background: rgba(255,255,255,0.86);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.6);
     }
 
     .status {
@@ -173,119 +168,145 @@
       text-transform: uppercase;
     }
 
-    .value-grid {
+    /* 3D stage */
+    .stage-wrap {
       display: grid;
-      grid-template-columns: repeat(2, minmax(0, 1fr));
+      grid-template-columns: 1fr 320px;
       gap: 16px;
+      align-items: stretch;
     }
 
-    .value-card {
+    .stage {
       position: relative;
+      min-height: 760px;
+      border-radius: 28px;
       overflow: hidden;
-      border-radius: 30px;
-      min-height: 360px;
       background:
-        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.28), transparent 26%),
-        radial-gradient(circle at 80% 22%, rgba(255,255,255,0.22), transparent 22%),
-        radial-gradient(circle at 50% 78%, rgba(255,255,255,0.18), transparent 28%),
-        linear-gradient(180deg, var(--node-grey-1), var(--node-grey-2));
-      border: 1px solid rgba(255,255,255,0.55);
-      box-shadow: 0 24px 50px rgba(0,0,0,0.08);
+        radial-gradient(circle at center, rgba(255,255,255,0.18), transparent 40%),
+        linear-gradient(180deg, rgba(255,255,255,0.08), rgba(255,255,255,0.02)),
+        rgba(255,255,255,0.18);
+      border: 1px solid rgba(255,255,255,0.22);
+      perspective: 1800px;
+      box-shadow: inset 0 1px 0 rgba(255,255,255,0.25);
     }
 
-    .value-card::after {
+    .stage::before {
       content: "";
       position: absolute;
       inset: 0;
       background:
-        radial-gradient(circle at center, transparent 35%, rgba(255,255,255,0.14) 36%, transparent 58%);
+        radial-gradient(circle at 50% 50%, rgba(255,255,255,0.12), transparent 48%),
+        radial-gradient(circle at 50% 78%, rgba(0,0,0,0.04), transparent 20%);
       pointer-events: none;
-      opacity: 0.8;
     }
 
-    .value-head {
-      position: relative;
-      z-index: 2;
-      padding: 18px 18px 8px;
+    .orbit {
+      position: absolute;
+      inset: 0;
+      transform-style: preserve-3d;
+      animation: spin 26s linear infinite;
+    }
+
+    .orbit.paused {
+      animation-play-state: paused;
+    }
+
+    @keyframes spin {
+      from { transform: rotateX(18deg) rotateY(0deg); }
+      to   { transform: rotateX(18deg) rotateY(360deg); }
+    }
+
+    .value-node {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      width: 290px;
+      min-height: 290px;
+      transform-style: preserve-3d;
+      margin-left: -145px;
+      margin-top: -145px;
+      border-radius: 30px;
+      overflow: hidden;
+      background:
+        radial-gradient(circle at 18% 18%, rgba(255,255,255,0.32), transparent 26%),
+        radial-gradient(circle at 80% 22%, rgba(255,255,255,0.22), transparent 22%),
+        radial-gradient(circle at 50% 78%, rgba(255,255,255,0.18), transparent 28%),
+        linear-gradient(180deg, var(--node-grey-1), var(--node-grey-2));
+      border: 1px solid rgba(255,255,255,0.56);
+      box-shadow:
+        0 24px 44px rgba(0,0,0,0.12),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+      cursor: pointer;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .value-node:hover {
+      box-shadow:
+        0 30px 54px rgba(0,0,0,0.16),
+        inset 0 1px 0 rgba(255,255,255,0.35);
+    }
+
+    .node-head {
       display: flex;
       justify-content: space-between;
-      align-items: flex-start;
-      gap: 12px;
+      gap: 10px;
+      align-items: start;
     }
 
-    .value-title {
+    .node-title {
       margin: 0;
-      font-size: clamp(26px, 3vw, 36px);
-      letter-spacing: -0.05em;
+      font-size: 28px;
       line-height: 0.95;
-      color: #111;
+      letter-spacing: -0.05em;
     }
 
-    .value-count {
-      min-width: 42px;
-      height: 42px;
+    .node-count {
+      min-width: 38px;
+      height: 38px;
       display: grid;
       place-items: center;
       border-radius: 999px;
-      background: rgba(255,255,255,0.38);
-      color: #111;
-      font-size: 13px;
+      background: rgba(255,255,255,0.45);
+      font-size: 12px;
       font-weight: 700;
-      border: 1px solid rgba(255,255,255,0.35);
-      backdrop-filter: blur(8px);
-      -webkit-backdrop-filter: blur(8px);
+      border: 1px solid rgba(255,255,255,0.42);
     }
 
-    .value-body {
-      position: relative;
-      z-index: 2;
-      padding: 12px 16px 16px;
-      height: calc(100% - 64px);
-    }
-
-    .node-field {
-      position: relative;
-      height: 100%;
-      min-height: 270px;
-      border-radius: 22px;
-      overflow: hidden;
-      background:
-        linear-gradient(180deg, rgba(255,255,255,0.12), rgba(255,255,255,0.04)),
-        rgba(255,255,255,0.10);
-      border: 1px solid rgba(255,255,255,0.22);
-      box-shadow: inset 0 1px 0 rgba(255,255,255,0.20);
-      padding: 16px;
+    .quote-stack {
       display: flex;
-      align-content: flex-start;
-      align-items: flex-start;
-      flex-wrap: wrap;
-      gap: 10px;
+      flex-direction: column;
+      gap: 8px;
     }
 
     .quote-chip {
       appearance: none;
       border: none;
       border-radius: 999px;
-      padding: 12px 16px;
-      font-size: 13px;
+      padding: 10px 13px;
+      font-size: 12px;
       line-height: 1.25;
       text-align: left;
+      color: white;
       cursor: pointer;
-      color: #fff;
-      box-shadow: 0 12px 22px rgba(0,0,0,0.14);
+      box-shadow: 0 8px 18px rgba(0,0,0,0.14);
+      transition: transform 0.16s ease, box-shadow 0.16s ease;
+      width: fit-content;
       max-width: 100%;
-      transition: transform 0.18s ease, box-shadow 0.18s ease;
     }
 
     .quote-chip:hover {
-      transform: translateY(-2px) scale(1.02);
-      box-shadow: 0 16px 26px rgba(0,0,0,0.18);
+      transform: translateY(-1px) scale(1.02);
+      box-shadow: 0 12px 22px rgba(0,0,0,0.16);
     }
 
     .quote-chip small {
       display: block;
-      margin-top: 5px;
-      font-size: 11px;
+      margin-top: 4px;
+      font-size: 10px;
       opacity: 0.88;
     }
 
@@ -298,13 +319,59 @@
       outline-offset: -2px;
     }
 
+    .side-panel {
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .side-panel h3 {
+      margin: 0;
+      font-size: 16px;
+    }
+
+    .side-panel p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
+      line-height: 1.45;
+    }
+
+    .legend {
+      display: grid;
+      gap: 10px;
+      margin-top: 6px;
+    }
+
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .legend-dot {
+      width: 14px;
+      height: 14px;
+      border-radius: 999px;
+      flex: 0 0 auto;
+    }
+
+    .orbit-controls {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: auto;
+    }
+
     .overlay {
       position: fixed;
       inset: 0;
       display: none;
       align-items: center;
       justify-content: center;
-      background: rgba(10,10,10,0.28);
+      background: rgba(10,10,10,0.30);
       z-index: 100;
       padding: 18px;
       backdrop-filter: blur(8px);
@@ -372,18 +439,21 @@
       line-height: 1.45;
     }
 
-    @media (max-width: 980px) {
-      .value-grid {
+    @media (max-width: 1100px) {
+      .stage-wrap {
         grid-template-columns: 1fr;
+      }
+
+      .stage {
+        min-height: 660px;
+      }
+
+      .side-panel {
+        order: -1;
       }
     }
 
     @media (max-width: 760px) {
-      .header {
-        flex-direction: column;
-        align-items: flex-start;
-      }
-
       .form-grid {
         grid-template-columns: 1fr;
       }
@@ -391,6 +461,21 @@
       model-viewer {
         height: 56vh;
         min-height: 340px;
+      }
+
+      .stage {
+        min-height: 560px;
+      }
+
+      .value-node {
+        width: 230px;
+        min-height: 250px;
+        margin-left: -115px;
+        margin-top: -125px;
+      }
+
+      .node-title {
+        font-size: 24px;
       }
     }
   </style>
@@ -416,12 +501,13 @@
       <div class="glass header">
         <div>
           <h1>Value Lab</h1>
-          <p>Tap a quote. Add a quote. Build the overlap.</p>
+          <p>Spin the values. Tap the quotes. Open the model in AR.</p>
         </div>
       </div>
 
       <div class="glass controls">
         <button class="ar-btn" id="arButton" type="button">View in AR</button>
+        <button class="ghost-btn" id="toggleSpinButton" type="button">Pause Spin</button>
         <button class="ghost-btn" id="clearNodesButton" type="button">Clear Added Quotes</button>
       </div>
 
@@ -450,8 +536,41 @@
     </div>
 
     <div class="glass section">
-      <h2>Value Nodes</h2>
-      <div class="value-grid" id="valueGrid"></div>
+      <h2>3D Value Nodes</h2>
+      <div class="stage-wrap">
+        <div class="stage">
+          <div class="orbit" id="orbit"></div>
+        </div>
+
+        <div class="glass side-panel">
+          <h3>Systems</h3>
+          <div class="legend">
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--commons)"></span>
+              <span>Commons / added quotes</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--state)"></span>
+              <span>State</span>
+            </div>
+            <div class="legend-item">
+              <span class="legend-dot" style="background:var(--market)"></span>
+              <span>Market</span>
+            </div>
+          </div>
+
+          <p>Quotes can repeat across values. That overlap stays visible.</p>
+
+          <div class="orbit-controls">
+            <button class="ghost-btn" id="focusCare" type="button">Care</button>
+            <button class="ghost-btn" id="focusBelonging" type="button">Belonging</button>
+            <button class="ghost-btn" id="focusNeglect" type="button">Neglect</button>
+            <button class="ghost-btn" id="focusGreed" type="button">Greed</button>
+            <button class="ghost-btn" id="focusTrust" type="button">Trust</button>
+            <button class="ghost-btn" id="focusEfficiency" type="button">Efficiency</button>
+          </div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -478,8 +597,9 @@
     const valueSelect = document.getElementById('valueSelect');
     const sendFormspreeButton = document.getElementById('sendFormspreeButton');
     const clearNodesButton = document.getElementById('clearNodesButton');
+    const toggleSpinButton = document.getElementById('toggleSpinButton');
     const statusMessage = document.getElementById('statusMessage');
-    const valueGrid = document.getElementById('valueGrid');
+    const orbit = document.getElementById('orbit');
 
     const overlay = document.getElementById('overlay');
     const overlayTitle = document.getElementById('overlayTitle');
@@ -487,7 +607,7 @@
     const overlayMeta = document.getElementById('overlayMeta');
     const closeOverlay = document.getElementById('closeOverlay');
 
-    const STORAGE_KEY = 'value-lab-overlap-nodes-v1';
+    const STORAGE_KEY = 'value-lab-overlap-nodes-v3d';
 
     const valueMaps = [
       {
@@ -561,6 +681,8 @@
       }
     ];
 
+    let isPaused = false;
+
     function showStatus(text) {
       statusMessage.style.display = 'block';
       statusMessage.textContent = text;
@@ -606,12 +728,14 @@
       if (e.target === overlay) overlay.classList.remove('show');
     });
 
-    function renderValueMaps() {
+    function render3DNodes() {
       const userNodes = getUserNodes();
+      const radius = 360;
 
-      valueGrid.innerHTML = valueMaps.map(value => {
+      orbit.innerHTML = valueMaps.map((value, index) => {
+        const angle = index * (360 / valueMaps.length);
         const valueUserNodes = userNodes.filter(node => node.value === value.id);
-        const allChips = [
+        const chips = [
           ...value.quotes.map(q => ({
             text: q.text,
             system: q.system,
@@ -626,51 +750,69 @@
         ];
 
         return `
-          <div class="value-card">
-            <div class="value-head">
-              <h3 class="value-title">${value.title}</h3>
-              <div class="value-count">${allChips.length}</div>
+          <div
+            class="value-node"
+            id="node-${value.id}"
+            style="transform:
+              rotateY(${angle}deg)
+              translateZ(${radius}px)
+              rotateX(-8deg);"
+          >
+            <div class="node-head">
+              <h3 class="node-title">${value.title}</h3>
+              <div class="node-count">${chips.length}</div>
             </div>
-            <div class="value-body">
-              <div class="node-field">
-                ${allChips.map(chip => `
-                  <button
-                    class="quote-chip ${chip.system}"
-                    type="button"
-                    data-title="${value.title}"
-                    data-text="${chip.text.replace(/"/g, '&quot;')}"
-                    data-meta="${
-                      chip.kind === 'user'
-                        ? `Added quote • ${formatDate(chip.createdAt)}`
-                        : sharedQuoteCount(chip.text) > 1
-                          ? `Shared across value nodes`
-                          : `Single value quote`
-                    }"
-                  >
-                    ${chip.text}
-                    <small>${
-                      chip.kind === 'user'
-                        ? 'Added'
-                        : sharedQuoteCount(chip.text) > 1
-                          ? 'Shared'
-                          : 'Quote'
-                    }</small>
-                  </button>
-                `).join('')}
-              </div>
+            <div class="quote-stack">
+              ${chips.map(chip => `
+                <button
+                  class="quote-chip ${chip.system}"
+                  type="button"
+                  data-title="${value.title}"
+                  data-text="${chip.text.replace(/"/g, '&quot;')}"
+                  data-meta="${
+                    chip.kind === 'user'
+                      ? `Added quote • ${formatDate(chip.createdAt)}`
+                      : sharedQuoteCount(chip.text) > 1
+                        ? `Shared across value nodes`
+                        : `Single value quote`
+                  }"
+                >
+                  ${chip.text}
+                  <small>${
+                    chip.kind === 'user'
+                      ? 'Added'
+                      : sharedQuoteCount(chip.text) > 1
+                        ? 'Shared'
+                        : 'Quote'
+                  }</small>
+                </button>
+              `).join('')}
             </div>
           </div>
         `;
       }).join('');
 
-      valueGrid.querySelectorAll('.quote-chip').forEach(button => {
-        button.addEventListener('click', () => {
+      orbit.querySelectorAll('.quote-chip').forEach(button => {
+        button.addEventListener('click', (e) => {
+          e.stopPropagation();
           openNode(
             button.dataset.title,
             button.dataset.text,
             button.dataset.meta
           );
         });
+      });
+    }
+
+    function focusValue(index) {
+      const step = 360 / valueMaps.length;
+      const target = -(index * step);
+      orbit.style.animation = 'none';
+      orbit.style.transform = `rotateX(18deg) rotateY(${target}deg)`;
+      requestAnimationFrame(() => {
+        if (!isPaused) {
+          orbit.style.animation = '';
+        }
       });
     }
 
@@ -681,6 +823,19 @@
         showStatus('AR could not open.');
       }
     });
+
+    toggleSpinButton.addEventListener('click', () => {
+      isPaused = !isPaused;
+      orbit.classList.toggle('paused', isPaused);
+      toggleSpinButton.textContent = isPaused ? 'Resume Spin' : 'Pause Spin';
+    });
+
+    document.getElementById('focusCare').addEventListener('click', () => focusValue(0));
+    document.getElementById('focusBelonging').addEventListener('click', () => focusValue(1));
+    document.getElementById('focusNeglect').addEventListener('click', () => focusValue(2));
+    document.getElementById('focusGreed').addEventListener('click', () => focusValue(3));
+    document.getElementById('focusTrust').addEventListener('click', () => focusValue(4));
+    document.getElementById('focusEfficiency').addEventListener('click', () => focusValue(5));
 
     nodeForm.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -698,7 +853,7 @@
 
       saveUserNodes(nodes);
       nodeInput.value = '';
-      renderValueMaps();
+      render3DNodes();
       showStatus('Quote added.');
     });
 
@@ -739,11 +894,11 @@
 
     clearNodesButton.addEventListener('click', () => {
       localStorage.removeItem(STORAGE_KEY);
-      renderValueMaps();
+      render3DNodes();
       showStatus('Added quotes cleared.');
     });
 
-    renderValueMaps();
+    render3DNodes();
   </script>
 </body>
 </html>
