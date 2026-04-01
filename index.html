@@ -5,13 +5,12 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Community Value Maps AR</title>
 
-  <!-- KEEPING YOUR ORIGINAL SCRIPT -->
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
   <style>
     :root {
       --bg: #ececec;
-      --panel: rgba(255, 255, 255, 0.88);
+      --panel: rgba(255, 255, 255, 0.9);
       --panel-strong: rgba(255, 255, 255, 0.96);
       --text: #111;
       --muted: #666;
@@ -41,6 +40,7 @@
       background: transparent;
       --progress-bar-color: #111;
       --progress-mask: rgba(255,255,255,0.75);
+      --ar-button-display: none;
     }
 
     .topbar {
@@ -68,7 +68,7 @@
 
     .title-card {
       padding: 14px 16px;
-      max-width: 340px;
+      max-width: 360px;
     }
 
     .title-card h1 {
@@ -84,34 +84,48 @@
       color: var(--muted);
     }
 
-    .actions {
+    .loading-overlay {
+      position: fixed;
+      inset: 0;
+      z-index: 30;
       display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      justify-content: flex-end;
+      align-items: center;
+      justify-content: center;
+      background: rgba(245, 245, 245, 0.82);
+      backdrop-filter: blur(6px);
+      transition: opacity 0.35s ease, visibility 0.35s ease;
     }
 
-    .btn {
-      appearance: none;
+    .loading-overlay.hidden {
+      opacity: 0;
+      visibility: hidden;
+      pointer-events: none;
+    }
+
+    .loading-box {
+      padding: 18px 20px;
+      border-radius: 18px;
+      background: rgba(255,255,255,0.95);
       border: 1px solid var(--line);
-      background: var(--panel-strong);
-      color: var(--text);
-      padding: 10px 14px;
-      border-radius: 999px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
       box-shadow: var(--shadow);
-      transition: transform 0.15s ease, background 0.15s ease;
+      text-align: center;
+      min-width: 220px;
     }
 
-    .btn:hover {
-      transform: translateY(-1px);
-      background: white;
+    .spinner {
+      width: 28px;
+      height: 28px;
+      margin: 0 auto 10px;
+      border: 3px solid rgba(0,0,0,0.12);
+      border-top-color: #111;
+      border-radius: 50%;
+      animation: spin 0.9s linear infinite;
     }
 
-    .btn:active {
-      transform: translateY(0);
+    .loading-box p {
+      margin: 0;
+      font-size: 13px;
+      color: var(--muted);
     }
 
     .bottom-ui {
@@ -124,8 +138,32 @@
       flex-direction: column;
       align-items: center;
       gap: 10px;
-      width: min(92vw, 520px);
+      width: min(92vw, 560px);
       pointer-events: none;
+    }
+
+    .ar-cta {
+      pointer-events: auto;
+      appearance: none;
+      border: none;
+      background: #111;
+      color: white;
+      padding: 16px 26px;
+      border-radius: 999px;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      box-shadow: 0 12px 30px rgba(0,0,0,0.22);
+      transition: transform 0.15s ease, box-shadow 0.15s ease;
+    }
+
+    .ar-cta:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(0,0,0,0.26);
+    }
+
+    .ar-cta:active {
+      transform: translateY(0);
     }
 
     .note {
@@ -204,50 +242,6 @@
       color: var(--muted);
     }
 
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 30;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(245, 245, 245, 0.82);
-      backdrop-filter: blur(6px);
-      transition: opacity 0.35s ease, visibility 0.35s ease;
-    }
-
-    .loading-overlay.hidden {
-      opacity: 0;
-      visibility: hidden;
-      pointer-events: none;
-    }
-
-    .loading-box {
-      padding: 18px 20px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.95);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
-      text-align: center;
-      min-width: 220px;
-    }
-
-    .spinner {
-      width: 28px;
-      height: 28px;
-      margin: 0 auto 10px;
-      border: 3px solid rgba(0,0,0,0.12);
-      border-top-color: #111;
-      border-radius: 50%;
-      animation: spin 0.9s linear infinite;
-    }
-
-    .loading-box p {
-      margin: 0;
-      font-size: 13px;
-      color: var(--muted);
-    }
-
     @keyframes spin {
       to { transform: rotate(360deg); }
     }
@@ -256,10 +250,6 @@
       .topbar {
         flex-direction: column;
         align-items: stretch;
-      }
-
-      .actions {
-        justify-content: flex-start;
       }
 
       .title-card {
@@ -272,6 +262,11 @@
 
       .feedback button {
         width: 100%;
+      }
+
+      .ar-cta {
+        width: 100%;
+        text-align: center;
       }
     }
   </style>
@@ -303,19 +298,17 @@
   <div class="topbar">
     <div class="panel title-card">
       <h1>Community Value Maps</h1>
-      <p>Explore the 3D model, open it in AR, and leave your own experience or reflection.</p>
-    </div>
-
-    <div class="actions">
-      <button class="btn" id="resetViewBtn" type="button">Reset View</button>
-      <button class="btn" id="toggleRotateBtn" type="button">Pause Rotation</button>
-      <button class="btn" id="fullscreenBtn" type="button">Fullscreen</button>
+      <p>Explore the 3D model in your browser or place it in your space using AR.</p>
     </div>
   </div>
 
   <div class="bottom-ui">
+    <button class="ar-cta" id="arButton" type="button">
+      View in AR
+    </button>
+
     <div class="note">
-      Open on phone, tap AR, then move your phone slowly to detect a surface.
+      Best on phone. Tap the button above, then move your phone slowly to detect a surface.
     </div>
 
     <form id="feedbackForm" class="panel feedback">
@@ -340,37 +333,22 @@
   <script>
     const viewer = document.getElementById('viewer');
     const loadingOverlay = document.getElementById('loadingOverlay');
-    const resetViewBtn = document.getElementById('resetViewBtn');
-    const toggleRotateBtn = document.getElementById('toggleRotateBtn');
-    const fullscreenBtn = document.getElementById('fullscreenBtn');
+    const arButton = document.getElementById('arButton');
     const feedbackForm = document.getElementById('feedbackForm');
     const messageInput = document.getElementById('messageInput');
     const statusMessage = document.getElementById('statusMessage');
-
-    let isRotating = true;
 
     viewer.addEventListener('load', () => {
       loadingOverlay.classList.add('hidden');
     });
 
-    resetViewBtn.addEventListener('click', () => {
-      viewer.cameraOrbit = '45deg 75deg auto';
-      viewer.fieldOfView = '30deg';
-      viewer.jumpCameraToGoal();
-    });
-
-    toggleRotateBtn.addEventListener('click', () => {
-      isRotating = !isRotating;
-      viewer.autoRotate = isRotating;
-      toggleRotateBtn.textContent = isRotating ? 'Pause Rotation' : 'Start Rotation';
-    });
-
-    fullscreenBtn.addEventListener('click', async () => {
-      const el = document.documentElement;
-      if (!document.fullscreenElement) {
-        await el.requestFullscreen?.();
-      } else {
-        await document.exitFullscreen?.();
+    arButton.addEventListener('click', async () => {
+      try {
+        if (viewer.activateAR) {
+          await viewer.activateAR();
+        }
+      } catch (error) {
+        showStatus('AR could not open on this device right now.', true);
       }
     });
 
