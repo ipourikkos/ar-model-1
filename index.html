@@ -1,92 +1,236 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>VALUE LAB - SE16</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>VALUE LAB - SE16</title>
 
-<script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
-<style>
-  body { margin:0; font-family: Arial, sans-serif; background:#f5f5f2; }
-  .container { display:grid; grid-template-columns:1.2fr 0.8fr; gap:20px; padding:20px; }
-  model-viewer { width:100%; height:80vh; background:#fff; }
-  .ar-btn { position:absolute; bottom:20px; left:20px; background:#000; color:#fff; border:none; padding:18px 26px; font-size:16px; font-weight:bold; border-radius:20px; cursor:pointer; }
-  .form { background:#fff; padding:20px; border-radius:20px; }
-  h1 { margin-bottom:20px; }
-  .values { display:grid; grid-template-columns:1fr 1fr; gap:10px; margin-bottom:20px; }
-  .value { padding:14px; border-radius:14px; cursor:pointer; text-align:center; font-weight:bold; border:1px solid #ccc; }
-  .active { outline:2px solid #000; }
-  textarea { width:100%; height:150px; padding:12px; border-radius:12px; border:1px solid #ccc; margin-bottom:10px; }
-  button { padding:14px; border:none; background:#000; color:#fff; border-radius:14px; cursor:pointer; width:100%; }
-  .care { background:#d7b6c2; }
-  .neglect { background:#d8c4e4; }
-  .trust { background:#d4e8eb; }
-  .efficiency { background:#d6e6cf; }
-  .greed { background:#e7debf; }
-  .belonging { background:#e5d1cb; }
-  @media(max-width:900px){ .container { grid-template-columns:1fr; } }
-</style>
-</head>
-
-<body>
-
-<div class="container">
-
-  <div style="position:relative;">
-    <model-viewer
-      id="model"
-      src="model.glb"
-      ios-src="model.usdz"
-      ar
-      ar-modes="scene-viewer quick-look webxr"
-      scale="0.05 0.05 0.05"
-      camera-controls
-      auto-rotate>
-    </model-viewer>
-
-    <button class="ar-btn" onclick="document.getElementById('model').activateAR()">
-      ENTER AR
-    </button>
-  </div>
-
-  <div class="form">
-    <h1>VALUE LAB - SE16</h1>
-
-    <form action="https://formspree.io/f/xeepzwbz" method="POST">
-
-      <div class="values">
-        <div class="value care" data="Care">CARE</div>
-        <div class="value neglect" data="Neglect">NEGLECT</div>
-        <div class="value trust" data="Trust">TRUST</div>
-        <div class="value efficiency" data="Efficiency">EFFICIENCY</div>
-        <div class="value greed" data="Greed">GREED</div>
-        <div class="value belonging" data="Belonging">BELONGING</div>
-      </div>
-
-      <input type="hidden" name="Value" id="value" required>
-
-      <textarea name="Text" required></textarea>
-
-      <button type="submit">SEND</button>
-
-    </form>
-  </div>
-
-</div>
-
-<script>
-  const values = document.querySelectorAll('.value');
-  const input = document.getElementById('value');
-
-  values.forEach(v => {
-    v.onclick = () => {
-      values.forEach(x => x.classList.remove('active'));
-      v.classList.add('active');
-      input.value = v.getAttribute('data');
+  <style>
+    * {
+      box-sizing: border-box;
     }
-  });
-</script>
 
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+      background: #f5f5f2;
+      color: #000;
+    }
+
+    .container {
+      display: grid;
+      grid-template-columns: 1.2fr 0.8fr;
+      gap: 20px;
+      padding: 20px;
+      min-height: 100vh;
+    }
+
+    .panel {
+      background: #fff;
+      border-radius: 20px;
+      overflow: hidden;
+    }
+
+    .viewer-panel {
+      position: relative;
+    }
+
+    model-viewer {
+      width: 100%;
+      height: 100%;
+      min-height: 80vh;
+      background: #fff;
+    }
+
+    .ar-btn {
+      position: absolute;
+      left: 20px;
+      bottom: 20px;
+      border: none;
+      background: #000;
+      color: #fff;
+      padding: 14px 22px;
+      border-radius: 16px;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      z-index: 10;
+    }
+
+    .form-panel {
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+    }
+
+    h1 {
+      margin: 0 0 8px 0;
+      font-size: 28px;
+      line-height: 1.1;
+    }
+
+    .subtext {
+      margin: 0 0 16px 0;
+      font-size: 13px;
+      color: #555;
+    }
+
+    .values {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+
+    .value-btn {
+      border: 1px solid rgba(0,0,0,0.18);
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      text-align: center;
+      color: #000;
+      text-shadow: 0 0 4px rgba(0,0,0,0.25);
+      transition: transform 0.2s ease, box-shadow 0.2s ease, outline 0.2s ease;
+    }
+
+    .value-btn:hover {
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .value-btn.active {
+      outline: 2px solid #000;
+      outline-offset: -2px;
+      transform: translateY(-2px) scale(1.02);
+    }
+
+    .care {
+      background: #ff3ea5;
+      box-shadow: 0 0 10px #ff3ea5;
+    }
+
+    .neglect {
+      background: #22e0e6;
+      box-shadow: 0 0 10px #22e0e6;
+    }
+
+    .trust {
+      background: #39ff5a;
+      box-shadow: 0 0 10px #39ff5a;
+    }
+
+    .efficiency {
+      background: #ffe600;
+      box-shadow: 0 0 10px #ffe600;
+    }
+
+    .greed {
+      background: #ff9f1a;
+      box-shadow: 0 0 10px #ff9f1a;
+    }
+
+    .belonging {
+      background: #ff6a00;
+      box-shadow: 0 0 10px #ff6a00;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 180px;
+      border: 1px solid #cfcfcf;
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 15px;
+      resize: vertical;
+      margin-bottom: 12px;
+      font-family: Arial, sans-serif;
+    }
+
+    .send-btn {
+      width: 100%;
+      border: none;
+      background: #000;
+      color: #fff;
+      padding: 14px;
+      border-radius: 14px;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    @media (max-width: 900px) {
+      .container {
+        grid-template-columns: 1fr;
+      }
+
+      model-viewer {
+        min-height: 65vh;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <div class="panel viewer-panel">
+      <model-viewer
+        id="model"
+        src="./model.glb"
+        ios-src="./model.usdz"
+        alt="VALUE LAB - SE16"
+        ar
+        ar-modes="scene-viewer quick-look webxr"
+        ar-scale="fixed"
+        scale="0.05 0.05 0.05"
+        camera-controls
+        auto-rotate
+        interaction-prompt="none"
+        shadow-intensity="1"
+        environment-image="neutral">
+      </model-viewer>
+
+      <button
+        class="ar-btn"
+        type="button"
+        onclick="document.getElementById('model').activateAR()">
+        ENTER AR
+      </button>
+    </div>
+
+    <div class="panel form-panel">
+      <h1>VALUE LAB - SE16</h1>
+      <p class="subtext">choose value, write your thoughts</p>
+
+      <form action="https://formspree.io/f/xeepzwbz" method="POST">
+        <div class="values">
+          <button type="button" class="value-btn care" data-value="Care">CARE</button>
+          <button type="button" class="value-btn neglect" data-value="Neglect">NEGLECT</button>
+          <button type="button" class="value-btn trust" data-value="Trust">TRUST</button>
+          <button type="button" class="value-btn efficiency" data-value="Efficiency">EFFICIENCY</button>
+          <button type="button" class="value-btn greed" data-value="Greed">GREED</button>
+          <button type="button" class="value-btn belonging" data-value="Belonging">BELONGING</button>
+        </div>
+
+        <input type="hidden" name="Value" id="selectedValue" required>
+        <textarea name="Text" required></textarea>
+        <button class="send-btn" type="submit">SEND</button>
+      </form>
+    </div>
+  </div>
+
+  <script>
+    const valueButtons = document.querySelectorAll(".value-btn");
+    const selectedValue = document.getElementById("selectedValue");
+
+    valueButtons.forEach((button) => {
+      button.addEventListener("click", () => {
+        valueButtons.forEach((btn) => btn.classList.remove("active"));
+        button.classList.add("active");
+        selectedValue.value = button.dataset.value;
+      });
+    });
+  </script>
 </body>
 </html>
