@@ -3,417 +3,136 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Maps of Value | 3D + AR</title>
+  <title>Maps of Value AR</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"></script>
   <style>
     :root {
-      --bg: #e8e8e6;
-      --panel: rgba(255,255,255,0.88);
-      --ink: #1f2328;
-      --muted: #5f656d;
-      --commons: #6e8f8c;
-      --state: #a38745;
-      --market: #6b494d;
-      --line: rgba(0,0,0,0.08);
-      --shadow: 0 16px 40px rgba(0,0,0,0.12);
+      --bg: #ecebea;
+      --panel: rgba(255,255,255,0.78);
+      --border: rgba(0,0,0,0.06);
+      --text: #25282b;
+      --muted: #6b7075;
+      --commons: #7e9d9a;
+      --state: #a89354;
+      --market: #6d4b53;
     }
     * { box-sizing: border-box; }
-    html, body { margin:0; width:100%; height:100%; overflow:hidden; background:var(--bg); font-family:Arial, Helvetica, sans-serif; color:var(--ink); }
-    #app { position:fixed; inset:0; }
-    canvas { display:block; }
-    .hud { position:fixed; inset:0; pointer-events:none; z-index:10; }
-    .topbar { position:absolute; top:16px; left:16px; right:16px; display:flex; justify-content:space-between; align-items:flex-start; gap:16px; }
-    .titleCard, .legend, .footer, .focusBar, .arNote, .errorBox { background:var(--panel); backdrop-filter:blur(14px); border:1px solid var(--line); border-radius:18px; box-shadow:var(--shadow); pointer-events:auto; }
-    .titleCard { max-width:520px; padding:14px 16px; }
-    .eyebrow { font-size:11px; letter-spacing:.12em; text-transform:uppercase; color:var(--muted); margin-bottom:6px; }
-    .title { font-size:22px; font-weight:700; margin:0 0 8px; line-height:1.1; }
-    .subtitle { font-size:13px; color:var(--muted); margin:0; line-height:1.5; }
-    .legend { padding:12px 14px; min-width:200px; }
-    .legend h2 { font-size:12px; line-height:1; text-transform:uppercase; letter-spacing:.1em; color:var(--muted); margin:0 0 10px; }
-    .legendRow { display:flex; align-items:center; gap:10px; font-size:13px; margin-bottom:8px; }
-    .swatch { width:14px; height:14px; border-radius:50%; }
-    .focusBar { position:absolute; left:16px; right:16px; bottom:72px; display:flex; flex-wrap:wrap; justify-content:center; gap:10px; padding:12px; }
-    .focusBtn, .resetBtn { appearance:none; border:1px solid rgba(0,0,0,.08); background:rgba(255,255,255,.95); color:var(--ink); padding:10px 14px; border-radius:999px; font-weight:700; cursor:pointer; }
-    .footer { position:absolute; left:16px; bottom:16px; padding:10px 14px; font-size:12px; color:var(--muted); max-width:640px; line-height:1.45; }
-    .arNote { position:absolute; right:16px; bottom:16px; padding:10px 14px; font-size:12px; color:var(--muted); max-width:360px; line-height:1.45; }
-    .errorBox { position:absolute; left:16px; top:130px; padding:10px 14px; font-size:12px; color:#7a1e1e; max-width:520px; line-height:1.45; display:none; white-space:pre-wrap; }
-    #ar-button { position:fixed !important; right:16px !important; top:16px !important; bottom:auto !important; width:auto !important; border:1px solid rgba(0,0,0,.12) !important; border-radius:999px !important; padding:0 18px !important; background:rgba(255,255,255,.92) !important; color:var(--ink) !important; font-size:13px !important; font-weight:700 !important; line-height:42px !important; height:44px !important; opacity:1 !important; }
-    @media (max-width:860px){ .topbar{flex-direction:column;} .focusBar{bottom:128px;} }
-    @media (max-width:640px){ .title{font-size:18px;} .subtitle,.footer,.arNote,.errorBox{font-size:11px;} .focusBtn,.resetBtn{padding:9px 12px; font-size:12px;} }
+    html, body { margin: 0; height: 100%; background: var(--bg); font-family: Arial, Helvetica, sans-serif; color: var(--text); }
+    body { overflow: hidden; }
+    model-viewer {
+      width: 100vw;
+      height: 100vh;
+      background: radial-gradient(circle at 50% 35%, #f5f4f3 0%, #ecebea 55%, #e6e4e2 100%);
+      --poster-color: transparent;
+    }
+    .panel {
+      position: fixed;
+      background: var(--panel);
+      backdrop-filter: blur(12px);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      box-shadow: 0 12px 34px rgba(0,0,0,0.10);
+      z-index: 2;
+    }
+    .intro {
+      top: 16px;
+      left: 16px;
+      width: min(410px, calc(100vw - 32px));
+      padding: 14px 16px;
+    }
+    .legend {
+      top: 16px;
+      right: 16px;
+      width: 156px;
+      padding: 12px 14px;
+    }
+    .footer {
+      left: 16px;
+      bottom: 16px;
+      width: min(520px, calc(100vw - 32px));
+      padding: 10px 14px;
+      font-size: 12px;
+      color: var(--muted);
+    }
+    .intro .eyebrow, .legend .eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8f95; margin-bottom: 4px; }
+    h1 { margin: 0 0 8px; font-size: 18px; }
+    p { margin: 0; line-height: 1.45; color: var(--muted); }
+    .legend-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 14px; }
+    .dot { width: 12px; height: 12px; border-radius: 999px; flex: 0 0 12px; }
+    .hint {
+      position: fixed;
+      right: 16px;
+      bottom: 16px;
+      width: min(280px, calc(100vw - 32px));
+      padding: 12px 14px;
+      font-size: 12px;
+      line-height: 1.45;
+      color: var(--muted);
+    }
+    .ar-chip {
+      display: inline-block;
+      margin-top: 10px;
+      padding: 7px 10px;
+      border-radius: 999px;
+      border: 1px solid rgba(0,0,0,0.08);
+      font-size: 12px;
+      color: var(--text);
+      background: rgba(255,255,255,0.86);
+    }
+    @media (max-width: 700px) {
+      .intro { width: calc(100vw - 24px); top: 12px; left: 12px; }
+      .legend { top: auto; right: 12px; bottom: 110px; width: 150px; }
+      .footer { left: 12px; bottom: 12px; width: calc(100vw - 24px); }
+      .hint { display: none; }
+    }
   </style>
 </head>
 <body>
-  <div id="app"></div>
-  <div class="hud">
-    <div class="topbar">
-      <section class="titleCard">
-        <div class="eyebrow">3D Reconstruction</div>
-        <h1 class="title">Maps of Value</h1>
-        <p class="subtitle">A coded 3D reconstruction of your uploaded value map sheet. Desktop lets you orbit and focus each map. AR placement appears on supported devices and browsers.</p>
-      </section>
-      <aside class="legend">
-        <h2>Colourway</h2>
-        <div class="legendRow"><span class="swatch" style="background:var(--commons)"></span><span>Commons</span></div>
-        <div class="legendRow"><span class="swatch" style="background:var(--state)"></span><span>State</span></div>
-        <div class="legendRow"><span class="swatch" style="background:var(--market)"></span><span>Market</span></div>
-      </aside>
-    </div>
-    <div class="errorBox" id="errorBox"></div>
-    <div class="focusBar" id="focusBar"></div>
-    <div class="footer">Quotes are stored in one editable data object inside this file so you can correct any wording after checking the PDF closely.</div>
-    <div class="arNote">iPhone Safari does not support WebXR hit test, so AR placement may not appear there. The 3D version should still load normally on desktop and mobile.</div>
+  <div class="panel intro">
+    <div class="eyebrow">3D Reconstruction</div>
+    <h1>Maps of Value</h1>
+    <p>This version uses your <strong>model.glb</strong> as the single source file. On desktop it opens as a normal 3D viewer. On iPhone, tapping the AR button should hand off to Apple Quick Look through model-viewer’s iOS flow.</p>
+    <div class="ar-chip">Use the AR button on supported devices</div>
   </div>
 
-  <script type="module">
-    import * as THREE from 'https://esm.sh/three@0.160.0';
-    import { OrbitControls } from 'https://esm.sh/three@0.160.0/examples/jsm/controls/OrbitControls.js';
-    import { ARButton } from 'https://esm.sh/three@0.160.0/examples/jsm/webxr/ARButton.js';
+  <div class="panel legend">
+    <div class="eyebrow">Colourway</div>
+    <div class="legend-row"><span class="dot" style="background: var(--commons)"></span>Commons</div>
+    <div class="legend-row"><span class="dot" style="background: var(--state)"></span>State</div>
+    <div class="legend-row"><span class="dot" style="background: var(--market)"></span>Market</div>
+  </div>
 
-    const showError = (msg) => {
-      const box = document.getElementById('errorBox');
-      box.style.display = 'block';
-      box.textContent = msg;
-    };
-    window.addEventListener('error', (e) => showError(`Runtime error: ${e.message}`));
-    window.addEventListener('unhandledrejection', (e) => showError(`Module error: ${e.reason}`));
+  <div class="panel footer">
+    Replace the old homepage file with this one as <strong>index.html</strong>, and keep your 3D file beside it in the repo root as <strong>model.glb</strong>.
+  </div>
 
-    const COLORS = {
-      bg: 0xe8e8e6,
-      commons: '#6e8f8c',
-      state: '#a38745',
-      market: '#6b494d',
-      text: '#1f2328',
-      site: '#dad9d5'
-    };
+  <div class="panel hint">
+    iPhone AR is not WebXR placement here. The AR button passes the GLB through the iOS Quick Look path handled by model-viewer.
+  </div>
 
-    const MAPS = [
-      { name:'CARE', quotes:{ commons:['There should be more affordable food places here.','The bowling alley gave people somewhere to go.','Young people need spaces to feel safer.'], state:['There should be more places for children and teenagers to use in winter.','Fireworks should not be going off in the woodland.'], market:['There is activity here until the funding runs out.'] } },
-      { name:'BELONGING', quotes:{ commons:['People need their own spaces.','Some businesses used to be here and people miss it.','The bowling alley gave people good value.'], state:['The area has good value.','It feels good now that we use it.'], market:['It feels like the area has been taken over.','There needs to be a sense of people.'] } },
-      { name:'NEGLECT', quotes:{ commons:['The cinema used to be here and people loved it.','The swimming pool used to bring people and property.'], state:['They told us the buildings would not go that high.','There was a skate park before the construction.'], market:['I was asked to pay 1500 a month.','The trees are too little and it is turning into a concrete jungle.'] } },
-      { name:'GREED', quotes:{ commons:['Some businesses here are too expensive for local people.','It feels like the area has become more expensive.'], state:['The area used to feel like a hidden gem.','They are asking too much now.'], market:['The high rises are too much now.','It is turning into concrete.'] } },
-      { name:'TRUST', quotes:{ commons:['It feels good now because it is quiet, but I do not know what it will become.','What are you doing here?'], state:['Fireworks should not be going off in the woodland.','They told us the buildings would not go that high.'], market:['I was asked to pay rent, 1500 a month.','They use sustainability as an excuse to build more.'] } },
-      { name:'EFFICIENCY', quotes:{ commons:['There should be more affordable food places here.','The swimming pool should be fixed properly.'], state:['The market was so slow I would go to McDonald’s and come back while nothing had moved.','There needs to be more places to use in winter.'], market:['The prices and activities are minimal.','There should be fixed places there.'] } }
-    ];
-
-    const scene = new THREE.Scene();
-    scene.background = new THREE.Color(COLORS.bg);
-
-    const camera = new THREE.PerspectiveCamera(46, window.innerWidth / window.innerHeight, 0.01, 200);
-    camera.position.set(0, 11, 18);
-
-    const renderer = new THREE.WebGLRenderer({ antialias: true, alpha: false });
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
-    renderer.setSize(window.innerWidth, window.innerHeight);
-    renderer.outputColorSpace = THREE.SRGBColorSpace;
-    renderer.xr.enabled = true;
-    document.getElementById('app').appendChild(renderer.domElement);
-
-    const controls = new OrbitControls(camera, renderer.domElement);
-    controls.enableDamping = true;
-    controls.target.set(0, 0.6, 0);
-    controls.minDistance = 6;
-    controls.maxDistance = 32;
-    controls.maxPolarAngle = Math.PI * 0.49;
-
-    scene.add(new THREE.HemisphereLight(0xffffff, 0xb5afa2, 1.45));
-    const dir = new THREE.DirectionalLight(0xffffff, 1.15);
-    dir.position.set(10, 16, 12);
-    scene.add(dir);
-
-    const root = new THREE.Group();
-    scene.add(root);
-
-    const plate = new THREE.Mesh(
-      new THREE.CylinderGeometry(12.5, 12.9, 0.18, 96),
-      new THREE.MeshStandardMaterial({ color: COLORS.site, roughness: 0.95 })
-    );
-    plate.position.y = -0.18;
-    root.add(plate);
-
-    const field = new THREE.Mesh(
-      new THREE.CircleGeometry(11.6, 96),
-      new THREE.MeshStandardMaterial({ color: 0xf2f1ee, roughness: 1 })
-    );
-    field.rotation.x = -Math.PI / 2;
-    root.add(field);
-
-    const grid = new THREE.GridHelper(24, 24, 0xd3d1cb, 0xe3e1dc);
-    grid.position.y = -0.169;
-    root.add(grid);
-
-    const positions = [[-6,0,4.2],[0,0,4.2],[6,0,4.2],[-6,0,-4.2],[0,0,-4.2],[6,0,-4.2]];
-    const mapGroups = [];
-
-    MAPS.forEach((m, i) => {
-      const g = createValueMap(m);
-      g.position.set(...positions[i]);
-      root.add(g);
-      mapGroups.push(g);
-    });
-
-    const bottomLeft = makeLabel('COMMONS - STATE - MARKET', 1024, 120, 54, '#1f2328');
-    bottomLeft.position.set(-7.6, 0.2, -10.8);
-    bottomLeft.scale.set(4.6, 0.54, 1);
-    root.add(bottomLeft);
-
-    const bottomRight = makeLabel('MAPS OF VALUE', 768, 120, 54, '#1f2328');
-    bottomRight.position.set(7.7, 0.2, -10.8);
-    bottomRight.scale.set(3.1, 0.54, 1);
-    root.add(bottomRight);
-
-    const focusBar = document.getElementById('focusBar');
-    MAPS.forEach((m, i) => {
-      const btn = document.createElement('button');
-      btn.className = 'focusBtn';
-      btn.textContent = m.name;
-      btn.onclick = () => {
-        controls.target.set(positions[i][0], 0.7, positions[i][2]);
-        camera.position.set(positions[i][0], 4.8, positions[i][2] + 6.2);
-      };
-      focusBar.appendChild(btn);
-    });
-    const reset = document.createElement('button');
-    reset.className = 'resetBtn';
-    reset.textContent = 'RESET VIEW';
-    reset.onclick = () => {
-      controls.target.set(0, 0.6, 0);
-      camera.position.set(0, 11, 18);
-    };
-    focusBar.appendChild(reset);
-
-    const supportsWebXR = navigator.xr && navigator.xr.isSessionSupported;
-    if (supportsWebXR) {
-      document.body.appendChild(ARButton.createButton(renderer, {
-        requiredFeatures: ['hit-test'],
-        optionalFeatures: ['dom-overlay'],
-        domOverlay: { root: document.body }
-      }));
-    }
-
-    const reticle = new THREE.Mesh(
-      new THREE.RingGeometry(0.08, 0.11, 32).rotateX(-Math.PI / 2),
-      new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.95 })
-    );
-    reticle.matrixAutoUpdate = false;
-    reticle.visible = false;
-    scene.add(reticle);
-
-    let hitTestSource = null;
-    let hitTestSourceRequested = false;
-
-    renderer.xr.addEventListener('sessionstart', () => {
-      scene.background = null;
-      root.visible = false;
-    });
-
-    renderer.xr.addEventListener('sessionend', () => {
-      scene.background = new THREE.Color(COLORS.bg);
-      root.visible = true;
-      root.position.set(0, 0, 0);
-      root.rotation.set(0, 0, 0);
-      root.scale.set(1, 1, 1);
-      reticle.visible = false;
-      hitTestSource = null;
-      hitTestSourceRequested = false;
-    });
-
-    renderer.domElement.addEventListener('click', () => {
-      const session = renderer.xr.getSession();
-      if (!session || !reticle.visible) return;
-      root.visible = true;
-      root.position.setFromMatrixPosition(reticle.matrix);
-      root.rotation.y = extractYaw(reticle.matrix);
-      root.scale.setScalar(0.16);
-    });
-
-    window.addEventListener('resize', () => {
-      camera.aspect = window.innerWidth / window.innerHeight;
-      camera.updateProjectionMatrix();
-      renderer.setSize(window.innerWidth, window.innerHeight);
-    });
-
-    renderer.setAnimationLoop((time, frame) => {
-      controls.update();
-      mapGroups.forEach((g, i) => { g.rotation.y += 0.001 + i * 0.00006; });
-      handleXR(frame);
-      renderer.render(scene, camera);
-    });
-
-    function createValueMap(data) {
-      const group = new THREE.Group();
-
-      const base = new THREE.Mesh(
-        new THREE.CylinderGeometry(1.95, 2.08, 0.14, 80),
-        new THREE.MeshStandardMaterial({ color: 0xf8f7f4, roughness: 0.98 })
-      );
-      group.add(base);
-
-      const disc = new THREE.Mesh(
-        new THREE.CircleGeometry(1.82, 80),
-        new THREE.MeshStandardMaterial({ map: createPatternTexture(data.name), roughness: 1 })
-      );
-      disc.rotation.x = -Math.PI / 2;
-      disc.position.y = 0.08;
-      group.add(disc);
-
-      const outer = buildRing(data.quotes.commons, 1.47, 0.34, COLORS.commons, 0.14, 0.15);
-      const mid = buildRing(data.quotes.state, 0.95, 0.30, COLORS.state, 0.22, 0.17);
-      const inner = buildRing(data.quotes.market, 0.47, 0.26, COLORS.market, 0.30, 0.20);
-      group.add(outer, mid, inner);
-
-      const title = makeLabel(data.name, 700, 120, 62, '#1f2328');
-      title.position.set(0, 0.82, 0);
-      title.scale.set(1.65, 0.34, 1);
-      group.add(title);
-
-      const pin = new THREE.Mesh(new THREE.SphereGeometry(0.06, 20, 20), new THREE.MeshStandardMaterial({ color: 0x1f2328, roughness: 0.6 }));
-      pin.position.y = 0.12;
-      group.add(pin);
-
-      return group;
-    }
-
-    function buildRing(quotes, radius, thickness, color, y, gap) {
-      const band = new THREE.Group();
-      const total = Math.PI * 2 - quotes.length * gap;
-      const step = total / quotes.length;
-
-      quotes.forEach((quote, i) => {
-        const start = 0.2 + i * (step + gap);
-        const seg = new THREE.Mesh(
-          new THREE.RingGeometry(radius, radius + thickness, 48, 1, start, step),
-          new THREE.MeshStandardMaterial({ color, side: THREE.DoubleSide, roughness: 0.88 })
-        );
-        seg.rotation.x = -Math.PI / 2;
-        seg.position.y = y;
-        band.add(seg);
-
-        const a = start + step / 2;
-        const r = radius + thickness * 0.52;
-        const label = makeLabel(quote, 900, 170, 34, '#ffffff');
-        label.position.set(Math.cos(a) * r, y + 0.12, Math.sin(a) * r);
-        label.scale.set(1.08, 0.22, 1);
-        label.rotation.x = -Math.PI / 2;
-        label.rotation.z = a + Math.PI / 2;
-        band.add(label);
-      });
-
-      return band;
-    }
-
-    function createPatternTexture(seed) {
-      const size = 1024;
-      const canvas = document.createElement('canvas');
-      canvas.width = size;
-      canvas.height = size;
-      const ctx = canvas.getContext('2d');
-      ctx.fillStyle = '#f7f6f3';
-      ctx.fillRect(0, 0, size, size);
-      ctx.translate(size / 2, size / 2);
-
-      ctx.strokeStyle = 'rgba(214,211,205,0.9)';
-      ctx.lineWidth = 2;
-      [122, 252, 384].forEach(r => { ctx.beginPath(); ctx.arc(0,0,r,0,Math.PI*2); ctx.stroke(); });
-
-      for (let i = 0; i < 230; i++) {
-        const r = 70 + Math.random() * 370;
-        const a = Math.random() * Math.PI * 2;
-        const len = 8 + Math.random() * 24;
-        ctx.save();
-        ctx.rotate(a);
-        ctx.translate(r, 0);
-        ctx.rotate(Math.random() * Math.PI);
-        ctx.strokeStyle = i % 6 === 0 ? 'rgba(198,194,188,0.55)' : 'rgba(225,223,219,0.8)';
-        ctx.lineWidth = 1 + Math.random() * 2;
-        ctx.beginPath();
-        ctx.moveTo(-len/2, 0); ctx.lineTo(len/2, 0); ctx.stroke();
-        ctx.restore();
-      }
-
-      ctx.font = '700 22px Arial';
-      ctx.fillStyle = 'rgba(188,184,176,0.45)';
-      ctx.textAlign = 'center';
-      for (let i = 0; i < 3; i++) {
-        ctx.save();
-        ctx.rotate((Math.PI * 2 / 3) * i + 0.24);
-        ctx.fillText(seed, 0, -432);
-        ctx.restore();
-      }
-
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      return texture;
-    }
-
-    function makeLabel(text, width, height, fontSize, color) {
-      const canvas = document.createElement('canvas');
-      canvas.width = width;
-      canvas.height = height;
-      const ctx = canvas.getContext('2d');
-      ctx.clearRect(0, 0, width, height);
-      ctx.fillStyle = color;
-      ctx.font = `700 ${fontSize}px Arial`;
-      ctx.textAlign = 'center';
-      ctx.textBaseline = 'middle';
-      const lines = wrapLines(ctx, text, width * 0.88);
-      const lineHeight = fontSize * 1.1;
-      const total = lines.length * lineHeight;
-      let y = height / 2 - total / 2 + lineHeight / 2;
-      for (const line of lines) {
-        ctx.fillText(line, width / 2, y);
-        y += lineHeight;
-      }
-      const texture = new THREE.CanvasTexture(canvas);
-      texture.colorSpace = THREE.SRGBColorSpace;
-      texture.anisotropy = renderer.capabilities.getMaxAnisotropy();
-      const material = new THREE.SpriteMaterial({ map: texture, transparent: true, depthWrite: false });
-      return new THREE.Sprite(material);
-    }
-
-    function wrapLines(ctx, text, maxWidth) {
-      const words = String(text).split(' ');
-      const lines = [];
-      let line = '';
-      for (const word of words) {
-        const test = line ? `${line} ${word}` : word;
-        if (ctx.measureText(test).width <= maxWidth) line = test;
-        else { if (line) lines.push(line); line = word; }
-      }
-      if (line) lines.push(line);
-      return lines.slice(0, 3);
-    }
-
-    function extractYaw(matrix) {
-      const pos = new THREE.Vector3();
-      const quat = new THREE.Quaternion();
-      const scale = new THREE.Vector3();
-      matrix.decompose(pos, quat, scale);
-      return new THREE.Euler().setFromQuaternion(quat, 'YXZ').y;
-    }
-
-    function handleXR(frame) {
-      const session = renderer.xr.getSession();
-      if (!session || !frame) return;
-      const referenceSpace = renderer.xr.getReferenceSpace();
-
-      if (!hitTestSourceRequested) {
-        session.requestReferenceSpace('viewer').then((space) => {
-          session.requestHitTestSource({ space }).then((source) => { hitTestSource = source; });
-        });
-        session.addEventListener('end', () => { hitTestSourceRequested = false; hitTestSource = null; });
-        hitTestSourceRequested = true;
-      }
-
-      if (!hitTestSource) return;
-      const hits = frame.getHitTestResults(hitTestSource);
-      if (hits.length > 0) {
-        const pose = hits[0].getPose(referenceSpace);
-        reticle.visible = true;
-        reticle.matrix.fromArray(pose.transform.matrix);
-      } else {
-        reticle.visible = false;
-      }
-    }
-  </script>
+  <model-viewer
+    id="mv"
+    src="./model.glb"
+    alt="Maps of Value 3D model"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    camera-controls
+    touch-action="pan-y"
+    shadow-intensity="1"
+    shadow-softness="0.8"
+    exposure="1"
+    environment-image="neutral"
+    skybox-image=""
+    poster=""
+    auto-rotate
+    auto-rotate-delay="0"
+    rotation-per-second="8deg"
+    camera-orbit="25deg 72deg 220%"
+    min-camera-orbit="auto 20deg auto"
+    max-camera-orbit="auto 95deg auto"
+    field-of-view="28deg"
+    ar-scale="fixed"
+    xr-environment>
+  </model-viewer>
 </body>
 </html>
