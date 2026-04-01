@@ -2,13 +2,21 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta
+    name="viewport"
+    content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+  />
   <title>Value Lab</title>
 
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+  <script
+    type="module"
+    src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"
+  ></script>
+  <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
 
   <style>
     :root {
+      --bg: #efefef;
       --panel: rgba(255, 255, 255, 0.92);
       --panel-strong: rgba(255, 255, 255, 0.98);
       --text: #111;
@@ -23,12 +31,14 @@
       --neglect: #8b8b8b;
       --greed: #be4b4b;
       --memory: #8a63d2;
-      --all: #111;
+
+      --safe-top: max(14px, env(safe-area-inset-top));
+      --safe-bottom: max(14px, env(safe-area-inset-bottom));
+      --safe-left: max(14px, env(safe-area-inset-left));
+      --safe-right: max(14px, env(safe-area-inset-right));
     }
 
-    * {
-      box-sizing: border-box;
-    }
+    * { box-sizing: border-box; }
 
     html, body {
       margin: 0;
@@ -40,11 +50,16 @@
       color: var(--text);
     }
 
+    button, input, select, textarea {
+      font: inherit;
+    }
+
     model-viewer {
       width: 100vw;
       height: 100vh;
       background: transparent;
       --ar-button-display: none;
+      --progress-bar-color: #111;
     }
 
     .panel {
@@ -56,25 +71,72 @@
       box-shadow: var(--shadow);
     }
 
-    .top-left {
-      position: fixed;
-      top: 14px;
-      left: 14px;
-      z-index: 30;
-      width: min(360px, calc(100vw - 28px));
+    .ghost {
+      background: rgba(255,255,255,0.82);
+      border: 1px solid var(--line);
+      border-radius: 999px;
+      color: var(--text);
+      padding: 10px 12px;
+      cursor: pointer;
     }
 
-    .title-card {
+    .primary {
+      background: #111;
+      color: white;
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .secondary {
+      background: rgba(0,0,0,0.08);
+      color: var(--text);
+      border: none;
+      border-radius: 12px;
+      padding: 12px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .pill {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: rgba(255,255,255,0.86);
+      color: var(--text);
+      border-radius: 999px;
+      padding: 8px 12px;
+      cursor: pointer;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .pill.active {
+      background: #111;
+      color: white;
+      border-color: transparent;
+    }
+
+    .top-left {
+      position: fixed;
+      top: var(--safe-top);
+      left: var(--safe-left);
+      z-index: 40;
+      width: min(380px, calc(100vw - 28px));
+    }
+
+    .brand {
       padding: 14px 16px;
     }
 
-    .title-card h1 {
-      margin: 0 0 6px 0;
-      font-size: 20px;
+    .brand h1 {
+      margin: 0 0 6px;
+      font-size: 21px;
       line-height: 1.1;
     }
 
-    .title-card p {
+    .brand p {
       margin: 0;
       font-size: 13px;
       line-height: 1.45;
@@ -83,17 +145,17 @@
 
     .top-right {
       position: fixed;
-      top: 14px;
-      right: 14px;
-      z-index: 30;
-      width: min(520px, calc(100vw - 28px));
+      top: var(--safe-top);
+      right: var(--safe-right);
+      z-index: 40;
+      width: min(560px, calc(100vw - 28px));
       display: flex;
       flex-direction: column;
       gap: 10px;
       align-items: flex-end;
     }
 
-    .filters {
+    .toolbar, .filter-row, .display-row {
       display: flex;
       gap: 8px;
       flex-wrap: wrap;
@@ -101,52 +163,31 @@
       padding: 10px;
     }
 
-    .chip {
-      appearance: none;
+    .toolbar select,
+    .toolbar input,
+    .filter-row select,
+    .display-row select {
       border: 1px solid var(--line);
-      background: rgba(255,255,255,0.82);
-      color: var(--text);
-      border-radius: 999px;
-      padding: 8px 12px;
-      font-size: 12px;
-      font-weight: 700;
-      cursor: pointer;
-      transition: transform 0.15s ease, background 0.15s ease, color 0.15s ease, opacity 0.15s ease;
+      background: rgba(255,255,255,0.95);
+      padding: 10px 12px;
+      border-radius: 12px;
+      min-width: 0;
     }
 
-    .chip:hover {
-      transform: translateY(-1px);
-      background: white;
-    }
-
-    .chip.active {
-      color: white;
-      border-color: transparent;
-    }
-
-    .chip[data-filter="all"].active { background: var(--all); }
-    .chip[data-filter="care"].active { background: var(--care); }
-    .chip[data-filter="trust"].active { background: var(--trust); }
-    .chip[data-filter="belonging"].active { background: var(--belonging); }
-    .chip[data-filter="neglect"].active { background: var(--neglect); }
-    .chip[data-filter="greed"].active { background: var(--greed); }
-    .chip[data-filter="memory"].active { background: var(--memory); }
-
-    .bottom-ui {
+    .bottom-center {
       position: fixed;
       left: 50%;
-      bottom: 18px;
+      bottom: var(--safe-bottom);
       transform: translateX(-50%);
-      z-index: 30;
+      z-index: 40;
+      width: min(96vw, 1080px);
       display: flex;
       flex-direction: column;
       gap: 10px;
-      width: min(94vw, 760px);
       align-items: center;
     }
 
-    .ar-cta {
-      appearance: none;
+    .ar-button {
       border: none;
       background: #111;
       color: white;
@@ -156,121 +197,268 @@
       font-weight: 700;
       cursor: pointer;
       box-shadow: 0 12px 30px rgba(0,0,0,0.22);
-      transition: transform 0.15s ease, box-shadow 0.15s ease;
     }
 
-    .ar-cta:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 16px 36px rgba(0,0,0,0.26);
-    }
-
-    .form-card {
+    .composer {
       width: 100%;
       padding: 10px;
     }
 
-    .form-grid {
+    .composer-grid {
       display: grid;
-      grid-template-columns: 1.6fr 0.9fr 0.9fr auto auto;
+      grid-template-columns: 1.2fr 1fr 1fr 0.9fr 0.9fr auto auto auto;
       gap: 8px;
       align-items: stretch;
     }
 
-    input, select, textarea, button {
-      font: inherit;
-    }
-
-    .field, .select {
+    .field,
+    .select {
       width: 100%;
       border: 1px solid var(--line);
+      background: rgba(255,255,255,0.94);
       border-radius: 12px;
-      padding: 12px 12px;
-      background: rgba(255,255,255,0.92);
-      color: var(--text);
+      padding: 12px;
       outline: none;
     }
 
-    .field:focus, .select:focus {
+    .field:focus,
+    .select:focus {
       background: white;
-      border-color: rgba(0,0,0,0.18);
+      border-color: rgba(0,0,0,0.2);
     }
 
-    .secondary-btn, .primary-btn {
-      appearance: none;
-      border: none;
-      border-radius: 12px;
-      padding: 12px 14px;
-      font-weight: 700;
-      cursor: pointer;
-      white-space: nowrap;
-    }
-
-    .primary-btn {
-      background: #111;
-      color: white;
-    }
-
-    .secondary-btn {
-      background: rgba(0,0,0,0.08);
-      color: var(--text);
-    }
-
-    .secondary-btn.recording {
-      background: #be4b4b;
-      color: white;
+    .message-wrap {
+      grid-column: 1 / span 2;
     }
 
     .status {
-      display: none;
       width: 100%;
+      display: none;
       padding: 12px;
-      border-radius: 12px;
-      background: rgba(255,255,255,0.96);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
+      text-align: center;
       font-size: 13px;
+    }
+
+    .left-bottom {
+      position: fixed;
+      left: var(--safe-left);
+      bottom: var(--safe-bottom);
+      z-index: 40;
+      width: min(360px, calc(100vw - 28px));
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .stats, .map-box {
+      padding: 12px;
+    }
+
+    .stats h3, .map-box h3 {
+      margin: 0 0 10px;
+      font-size: 14px;
+    }
+
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .stat {
+      background: rgba(255,255,255,0.65);
+      border: 1px solid var(--line);
+      border-radius: 12px;
+      padding: 10px;
       text-align: center;
     }
 
-    .loading-overlay {
-      position: fixed;
-      inset: 0;
-      z-index: 50;
+    .stat strong {
+      display: block;
+      font-size: 18px;
+      margin-bottom: 2px;
+    }
+
+    .map-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 8px;
+    }
+
+    .zone {
+      aspect-ratio: 1;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      background: linear-gradient(180deg, rgba(255,255,255,0.95), rgba(0,0,0,0.03));
+      cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      background: rgba(245,245,245,0.86);
-      backdrop-filter: blur(6px);
+      font-weight: 700;
+      font-size: 12px;
     }
 
-    .loading-overlay.hidden {
+    .zone.active {
+      outline: 2px solid #111;
+    }
+
+    .right-drawer {
+      position: fixed;
+      top: calc(var(--safe-top) + 180px);
+      right: var(--safe-right);
+      z-index: 50;
+      width: min(420px, calc(100vw - 28px));
+      max-height: calc(100vh - 220px);
+      display: none;
+      overflow: hidden;
+    }
+
+    .right-drawer.show {
+      display: block;
+    }
+
+    .drawer-header {
+      padding: 14px;
+      border-bottom: 1px solid var(--line);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+
+    .drawer-header h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .drawer-body {
+      padding: 10px;
+      overflow: auto;
+      max-height: calc(100vh - 300px);
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .story {
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 12px;
+      background: rgba(255,255,255,0.84);
+      cursor: pointer;
+    }
+
+    .story-top {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 8px;
+    }
+
+    .story h4 {
+      margin: 0;
+      font-size: 14px;
+    }
+
+    .story small {
+      color: var(--muted);
+      display: block;
+      line-height: 1.35;
+    }
+
+    .tag-row {
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      margin-top: 10px;
+    }
+
+    .tag {
+      border-radius: 999px;
+      padding: 5px 8px;
+      font-size: 11px;
+      font-weight: 700;
+      color: white;
+    }
+
+    .detail-card {
+      position: fixed;
+      right: var(--safe-right);
+      bottom: var(--safe-bottom);
+      z-index: 60;
+      width: min(390px, calc(100vw - 28px));
+      display: none;
+      padding: 14px;
+    }
+
+    .detail-card.show {
+      display: block;
+    }
+
+    .detail-head {
+      display: flex;
+      align-items: flex-start;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
+    }
+
+    .detail-head h3 {
+      margin: 0;
+      font-size: 16px;
+      line-height: 1.2;
+    }
+
+    .detail-meta {
+      color: var(--muted);
+      font-size: 12px;
+      line-height: 1.4;
+      margin-top: 5px;
+    }
+
+    .detail-text {
+      margin: 0;
+      font-size: 14px;
+      line-height: 1.5;
+      white-space: pre-wrap;
+    }
+
+    .detail-actions {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+
+    .loading {
+      position: fixed;
+      inset: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: rgba(245,245,245,0.84);
+      backdrop-filter: blur(8px);
+    }
+
+    .loading.hidden {
       display: none;
     }
 
     .loading-box {
-      padding: 18px 20px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.95);
-      border: 1px solid var(--line);
-      box-shadow: var(--shadow);
+      min-width: 240px;
       text-align: center;
-      min-width: 220px;
+      padding: 18px 22px;
     }
 
     .spinner {
       width: 28px;
       height: 28px;
       margin: 0 auto 10px;
-      border: 3px solid rgba(0,0,0,0.1);
-      border-top-color: black;
+      border: 3px solid rgba(0,0,0,0.12);
+      border-top-color: #111;
       border-radius: 50%;
       animation: spin 1s linear infinite;
-    }
-
-    .loading-box p {
-      margin: 0;
-      font-size: 13px;
-      color: var(--muted);
     }
 
     @keyframes spin {
@@ -308,22 +496,9 @@
       font-weight: 700;
       box-shadow: 0 10px 20px rgba(0,0,0,0.12);
       white-space: nowrap;
-      max-width: 220px;
+      max-width: 230px;
       overflow: hidden;
       text-overflow: ellipsis;
-    }
-
-    .hotspot.user .hotspot-dot {
-      animation: pulse 2s infinite;
-    }
-
-    .hotspot.curated .hotspot-dot {
-      width: 20px;
-      height: 20px;
-      box-shadow:
-        0 0 0 3px rgba(255,255,255,0.7),
-        0 0 0 1px rgba(0,0,0,0.12),
-        0 8px 20px rgba(0,0,0,0.18);
     }
 
     .hotspot.hidden {
@@ -331,8 +506,27 @@
     }
 
     .hotspot.dimmed {
-      opacity: 0.25;
+      opacity: 0.22;
     }
+
+    .hotspot.curated .hotspot-dot {
+      width: 20px;
+      height: 20px;
+      box-shadow:
+        0 0 0 3px rgba(255,255,255,0.75),
+        0 0 0 1px rgba(0,0,0,0.12),
+        0 8px 20px rgba(0,0,0,0.18);
+    }
+
+    .hotspot.user .hotspot-dot {
+      animation: pulse 2s infinite;
+    }
+
+    .hotspot.heat-1 .hotspot-dot { transform: scale(0.9); }
+    .hotspot.heat-2 .hotspot-dot { transform: scale(1.05); }
+    .hotspot.heat-3 .hotspot-dot { transform: scale(1.2); }
+    .hotspot.heat-4 .hotspot-dot { transform: scale(1.35); }
+    .hotspot.heat-5 .hotspot-dot { transform: scale(1.5); }
 
     @keyframes pulse {
       0% { box-shadow: 0 0 0 0 rgba(0,0,0,0.12), 0 8px 20px rgba(0,0,0,0.18); }
@@ -340,125 +534,95 @@
       100% { box-shadow: 0 0 0 0 rgba(0,0,0,0), 0 8px 20px rgba(0,0,0,0.18); }
     }
 
-    .detail-card {
-      position: fixed;
-      right: 14px;
-      bottom: 14px;
-      z-index: 40;
-      width: min(360px, calc(100vw - 28px));
-      display: none;
-      padding: 14px;
+    .placement-mode {
+      outline: 3px dashed rgba(0,0,0,0.12);
+      outline-offset: -6px;
     }
 
-    .detail-card.show {
+    .floating-note {
+      position: fixed;
+      left: 50%;
+      top: 50%;
+      transform: translate(-50%, -50%);
+      z-index: 70;
+      padding: 12px 16px;
+      display: none;
+    }
+
+    .floating-note.show {
       display: block;
     }
 
-    .detail-head {
-      display: flex;
-      justify-content: space-between;
-      align-items: start;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
+    .desktop-only { display: block; }
+    .mobile-only { display: none; }
 
-    .detail-title {
-      font-size: 15px;
-      font-weight: 700;
-      margin: 0;
-    }
-
-    .detail-meta {
-      font-size: 12px;
-      color: var(--muted);
-      margin-top: 4px;
-    }
-
-    .close-btn {
-      appearance: none;
-      border: none;
-      background: transparent;
-      color: #111;
-      font-size: 20px;
-      cursor: pointer;
-      line-height: 1;
-      padding: 0;
-    }
-
-    .detail-text {
-      font-size: 14px;
-      line-height: 1.5;
-      margin: 0;
-      white-space: pre-wrap;
-    }
-
-    .legend {
-      position: fixed;
-      left: 14px;
-      bottom: 14px;
-      z-index: 30;
-      padding: 10px 12px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-
-    .legend strong {
-      color: var(--text);
-    }
-
-    @media (max-width: 900px) {
-      .form-grid {
-        grid-template-columns: 1fr 1fr;
+    @media (max-width: 1100px) {
+      .composer-grid {
+        grid-template-columns: 1fr 1fr 1fr 1fr;
       }
 
-      .form-grid .message-wrap {
+      .message-wrap {
         grid-column: 1 / -1;
       }
 
-      .form-grid .send-wrap,
-      .form-grid .voice-wrap {
-        grid-column: span 1;
-      }
-
-      .top-right {
-        width: auto;
-        max-width: calc(100vw - 28px);
+      .left-bottom {
+        width: min(320px, calc(100vw - 28px));
       }
     }
 
-    @media (max-width: 640px) {
-      .top-left, .top-right {
-        width: calc(100vw - 28px);
-      }
-
+    @media (max-width: 820px) {
       .top-right {
+        width: calc(100vw - 28px);
         align-items: stretch;
       }
 
-      .filters {
+      .toolbar, .filter-row, .display-row {
         justify-content: flex-start;
       }
 
-      .form-grid {
+      .right-drawer {
+        top: auto;
+        bottom: 180px;
+        max-height: 45vh;
+      }
+
+      .desktop-only { display: none; }
+      .mobile-only { display: block; }
+    }
+
+    @media (max-width: 700px) {
+      .composer-grid {
         grid-template-columns: 1fr;
       }
 
-      .ar-cta {
+      .ar-button {
         width: 100%;
+      }
+
+      .left-bottom {
+        width: calc(100vw - 28px);
+      }
+
+      .stats-grid {
+        grid-template-columns: repeat(2, 1fr);
       }
 
       .hotspot-label {
         display: none;
       }
+
+      .detail-card,
+      .right-drawer {
+        width: calc(100vw - 28px);
+      }
     }
   </style>
 </head>
-
 <body>
-  <div class="loading-overlay" id="loadingOverlay">
-    <div class="loading-box">
+  <div class="loading" id="loadingOverlay">
+    <div class="panel loading-box">
       <div class="spinner"></div>
-      <p>Loading Value Lab…</p>
+      <div>Loading Value Lab…</div>
     </div>
   </div>
 
@@ -474,216 +638,419 @@
     exposure="1"
     environment-image="neutral"
     scale="0.01 0.01 0.01"
-    alt="Value Lab interactive 3D model">
-  </model-viewer>
+    alt="Value Lab interactive 3D model"
+  ></model-viewer>
 
   <div class="top-left">
-    <div class="panel title-card">
+    <div class="panel brand">
       <h1>Value Lab</h1>
-      <p>A living spatial archive of community value. Explore the model, reveal stories, and add your own memory, concern, or reflection.</p>
+      <p>
+        A living spatial archive of community value. Explore the model, switch
+        layers, place a marker directly on the model, record voice, browse the
+        archive, and trace stories through time.
+      </p>
     </div>
   </div>
 
   <div class="top-right">
-    <div class="panel filters" id="filters">
-      <button class="chip active" data-filter="all">All</button>
-      <button class="chip" data-filter="care">Care</button>
-      <button class="chip" data-filter="trust">Trust</button>
-      <button class="chip" data-filter="belonging">Belonging</button>
-      <button class="chip" data-filter="neglect">Neglect</button>
-      <button class="chip" data-filter="greed">Greed</button>
-      <button class="chip" data-filter="memory">Memory</button>
+    <div class="panel toolbar">
+      <button class="ghost" id="voicesToggle">Community Voices</button>
+      <button class="ghost" id="placementToggle">Tap to Place</button>
+      <button class="ghost" id="routeToggle">Spatial Story Mode</button>
+      <button class="ghost" id="exhibitionToggle">Exhibition Mode</button>
+      <button class="ghost" id="ambientToggle">Ambient</button>
+      <button class="ghost" id="exportJson">Export JSON</button>
+      <button class="ghost" id="exportCsv">Export CSV</button>
+    </div>
+
+    <div class="panel filter-row">
+      <button class="pill active value-filter" data-value="all">All Values</button>
+      <button class="pill value-filter" data-value="care">Care</button>
+      <button class="pill value-filter" data-value="trust">Trust</button>
+      <button class="pill value-filter" data-value="belonging">Belonging</button>
+      <button class="pill value-filter" data-value="neglect">Neglect</button>
+      <button class="pill value-filter" data-value="greed">Greed</button>
+      <button class="pill value-filter" data-value="memory">Memory</button>
+
+      <select id="layerFilter">
+        <option value="all">All Layers</option>
+        <option value="curated">Curated Only</option>
+        <option value="user">Public Only</option>
+      </select>
+
+      <select id="roleFilter">
+        <option value="all">All Roles</option>
+        <option value="resident">Resident</option>
+        <option value="youth">Youth</option>
+        <option value="worker">Worker</option>
+        <option value="visitor">Visitor</option>
+        <option value="parent">Parent</option>
+      </select>
+    </div>
+
+    <div class="panel display-row">
+      <select id="displayMode">
+        <option value="markers">Markers</option>
+        <option value="labels">Labels</option>
+        <option value="heatmap">Heatmap</option>
+        <option value="curated_focus">Curated Focus</option>
+      </select>
+
+      <select id="timelineMode">
+        <option value="all">All Time</option>
+        <option value="past">Past</option>
+        <option value="present">Present</option>
+        <option value="future">Future</option>
+      </select>
+
+      <input id="searchInput" type="text" placeholder="Search stories, place, value..." />
+      <button class="ghost" id="clearSearch">Clear</button>
     </div>
   </div>
 
-  <div class="bottom-ui">
-    <button class="ar-cta" id="arButton" type="button">View in AR</button>
+  <div class="left-bottom">
+    <div class="panel stats">
+      <h3>Archive Statistics</h3>
+      <div class="stats-grid" id="statsGrid"></div>
+    </div>
 
-    <div class="panel form-card">
-      <form id="contributionForm" class="form-grid">
+    <div class="panel map-box">
+      <h3>Zone Map</h3>
+      <div class="map-grid" id="zoneMap"></div>
+    </div>
+  </div>
+
+  <div class="bottom-center">
+    <button class="ar-button" id="arButton" type="button">View in AR</button>
+
+    <div class="panel composer">
+      <form id="composerForm" class="composer-grid">
         <div class="message-wrap">
           <input
-            class="field"
-            type="text"
             id="messageInput"
+            class="field"
             name="message"
-            placeholder="Add a memory, feeling, loss, or local experience..."
-            maxlength="240"
+            type="text"
+            maxlength="280"
+            placeholder="Add a story, concern, or memory..."
             required
           />
         </div>
 
-        <div>
-          <select class="select" id="valueInput" name="value">
-            <option value="care">Care</option>
-            <option value="trust">Trust</option>
-            <option value="belonging">Belonging</option>
-            <option value="neglect">Neglect</option>
-            <option value="greed">Greed</option>
-            <option value="memory" selected>Memory</option>
-          </select>
+        <select id="promptInput" class="select" name="prompt">
+          <option value="open">Open reflection</option>
+          <option value="lost">What has been lost?</option>
+          <option value="care">What do you care about here?</option>
+          <option value="neglect">What feels neglected?</option>
+          <option value="remain">What should remain?</option>
+          <option value="change">What should change?</option>
+        </select>
+
+        <input
+          id="placeInput"
+          class="field"
+          name="place"
+          type="text"
+          placeholder="Place"
+        />
+
+        <select id="valueInput" class="select" name="value">
+          <option value="memory">Memory</option>
+          <option value="care">Care</option>
+          <option value="trust">Trust</option>
+          <option value="belonging">Belonging</option>
+          <option value="neglect">Neglect</option>
+          <option value="greed">Greed</option>
+        </select>
+
+        <select id="roleInput" class="select" name="role">
+          <option value="resident">Resident</option>
+          <option value="youth">Youth</option>
+          <option value="worker">Worker</option>
+          <option value="visitor">Visitor</option>
+          <option value="parent">Parent</option>
+        </select>
+
+        <select id="identityInput" class="select" name="identity">
+          <option value="anonymous">Anonymous</option>
+          <option value="name">Named</option>
+          <option value="initials">Initials</option>
+        </select>
+
+        <button class="secondary" type="button" id="voiceTextBtn">Voice to Text</button>
+        <button class="secondary" type="button" id="recordAudioBtn">Record Audio</button>
+        <button class="primary" type="submit" id="submitBtn">Add</button>
+
+        <div class="mobile-only">
+          <input
+            id="nameInputMobile"
+            class="field"
+            name="display_name_mobile"
+            type="text"
+            placeholder="Name or initials"
+          />
         </div>
 
-        <div>
-          <select class="select" id="zoneInput" name="zone">
-            <option value="z1">Cluster A</option>
-            <option value="z2">Cluster B</option>
-            <option value="z3">Cluster C</option>
-            <option value="z4">Cluster D</option>
-            <option value="z5">Cluster E</option>
-            <option value="z6">Cluster F</option>
-          </select>
+        <div class="desktop-only">
+          <input
+            id="nameInput"
+            class="field"
+            name="display_name"
+            type="text"
+            placeholder="Name or initials"
+          />
         </div>
 
-        <div class="voice-wrap">
-          <button class="secondary-btn" type="button" id="voiceButton">Voice</button>
-        </div>
-
-        <div class="send-wrap">
-          <button class="primary-btn" type="submit" id="sendButton">Add</button>
-        </div>
+        <select id="timeTagInput" class="select" name="timeTag">
+          <option value="present">Present</option>
+          <option value="past">Past</option>
+          <option value="future">Future</option>
+        </select>
       </form>
     </div>
 
-    <div class="status" id="statusMessage"></div>
+    <div class="panel status" id="statusMessage"></div>
+  </div>
+
+  <div class="panel right-drawer" id="voicesDrawer">
+    <div class="drawer-header">
+      <h2>Community Voices</h2>
+      <div style="display:flex; gap:8px; align-items:center;">
+        <button class="ghost" id="clusterToggle">Keyword Clusters</button>
+        <button class="ghost" id="closeVoices">Close</button>
+      </div>
+    </div>
+    <div class="drawer-body" id="voicesBody"></div>
   </div>
 
   <div class="panel detail-card" id="detailCard">
     <div class="detail-head">
       <div>
-        <h2 class="detail-title" id="detailTitle">Story</h2>
+        <h3 id="detailTitle">Story</h3>
         <div class="detail-meta" id="detailMeta"></div>
       </div>
-      <button class="close-btn" id="closeDetail" type="button">&times;</button>
+      <button class="ghost" id="closeDetail">Close</button>
     </div>
     <p class="detail-text" id="detailText"></p>
+    <audio id="detailAudio" controls style="display:none; width:100%; margin-top:12px;"></audio>
+    <div class="detail-actions">
+      <button class="ghost" id="openMapsBtn">Open Map</button>
+      <button class="ghost" id="shareBtn">Share</button>
+      <button class="ghost" id="screenshotBtn">Screenshot</button>
+      <button class="ghost" id="nextRouteBtn">Next Route</button>
+    </div>
   </div>
 
-  <div class="panel legend">
-    <strong>Curated hotspots</strong> reveal key themes. <strong>User markers</strong> build the archive live on this device.
+  <div class="panel floating-note" id="floatingNote">
+    Tap a point on the model to place your next marker.
   </div>
 
   <script>
     const viewer = document.getElementById('viewer');
     const loadingOverlay = document.getElementById('loadingOverlay');
     const arButton = document.getElementById('arButton');
-    const form = document.getElementById('contributionForm');
-    const sendButton = document.getElementById('sendButton');
+
+    const composerForm = document.getElementById('composerForm');
+    const promptInput = document.getElementById('promptInput');
     const messageInput = document.getElementById('messageInput');
+    const placeInput = document.getElementById('placeInput');
     const valueInput = document.getElementById('valueInput');
-    const zoneInput = document.getElementById('zoneInput');
+    const roleInput = document.getElementById('roleInput');
+    const identityInput = document.getElementById('identityInput');
+    const nameInput = document.getElementById('nameInput');
+    const nameInputMobile = document.getElementById('nameInputMobile');
+    const timeTagInput = document.getElementById('timeTagInput');
+    const submitBtn = document.getElementById('submitBtn');
     const statusMessage = document.getElementById('statusMessage');
-    const filters = document.getElementById('filters');
+
+    const voicesToggle = document.getElementById('voicesToggle');
+    const voicesDrawer = document.getElementById('voicesDrawer');
+    const voicesBody = document.getElementById('voicesBody');
+    const closeVoices = document.getElementById('closeVoices');
+
+    const placementToggle = document.getElementById('placementToggle');
+    const floatingNote = document.getElementById('floatingNote');
+
+    const layerFilter = document.getElementById('layerFilter');
+    const roleFilter = document.getElementById('roleFilter');
+    const displayMode = document.getElementById('displayMode');
+    const timelineMode = document.getElementById('timelineMode');
+    const searchInput = document.getElementById('searchInput');
+    const clearSearch = document.getElementById('clearSearch');
+
+    const statsGrid = document.getElementById('statsGrid');
+    const zoneMap = document.getElementById('zoneMap');
+
     const detailCard = document.getElementById('detailCard');
     const detailTitle = document.getElementById('detailTitle');
     const detailMeta = document.getElementById('detailMeta');
     const detailText = document.getElementById('detailText');
+    const detailAudio = document.getElementById('detailAudio');
     const closeDetail = document.getElementById('closeDetail');
-    const voiceButton = document.getElementById('voiceButton');
+    const openMapsBtn = document.getElementById('openMapsBtn');
+    const shareBtn = document.getElementById('shareBtn');
+    const screenshotBtn = document.getElementById('screenshotBtn');
+    const nextRouteBtn = document.getElementById('nextRouteBtn');
 
-    const STORAGE_KEY = 'value-lab-submissions-v1';
-    let activeFilter = 'all';
+    const voiceTextBtn = document.getElementById('voiceTextBtn');
+    const recordAudioBtn = document.getElementById('recordAudioBtn');
 
-    const zoneAnchors = {
-      z1: [
-        { position: "-0.18m 0.16m 0.02m", normal: "0m 1m 0m" },
-        { position: "-0.16m 0.19m 0.04m", normal: "0m 1m 0m" },
-        { position: "-0.14m 0.14m 0.00m", normal: "0m 1m 0m" }
-      ],
-      z2: [
-        { position: "0.06m 0.18m -0.02m", normal: "0m 1m 0m" },
-        { position: "0.09m 0.20m 0.01m", normal: "0m 1m 0m" },
-        { position: "0.12m 0.16m -0.01m", normal: "0m 1m 0m" }
-      ],
-      z3: [
-        { position: "0.18m 0.12m 0.08m", normal: "0m 1m 0m" },
-        { position: "0.20m 0.15m 0.11m", normal: "0m 1m 0m" },
-        { position: "0.16m 0.10m 0.13m", normal: "0m 1m 0m" }
-      ],
-      z4: [
-        { position: "-0.04m 0.24m 0.10m", normal: "0m 1m 0m" },
-        { position: "-0.01m 0.26m 0.12m", normal: "0m 1m 0m" },
-        { position: "-0.07m 0.22m 0.08m", normal: "0m 1m 0m" }
-      ],
-      z5: [
-        { position: "-0.20m 0.08m -0.12m", normal: "0m 1m 0m" },
-        { position: "-0.17m 0.10m -0.10m", normal: "0m 1m 0m" },
-        { position: "-0.22m 0.12m -0.14m", normal: "0m 1m 0m" }
-      ],
-      z6: [
-        { position: "0.14m 0.22m -0.14m", normal: "0m 1m 0m" },
-        { position: "0.17m 0.24m -0.11m", normal: "0m 1m 0m" },
-        { position: "0.11m 0.20m -0.16m", normal: "0m 1m 0m" }
-      ]
+    const routeToggle = document.getElementById('routeToggle');
+    const exhibitionToggle = document.getElementById('exhibitionToggle');
+    const ambientToggle = document.getElementById('ambientToggle');
+    const clusterToggle = document.getElementById('clusterToggle');
+
+    const exportJson = document.getElementById('exportJson');
+    const exportCsv = document.getElementById('exportCsv');
+
+    const STORAGE_KEY = 'value-lab-upgraded-v1';
+    const AUDIO_STORAGE_KEY = 'value-lab-audio-v1';
+
+    const valueColors = {
+      care: '#66a96b',
+      trust: '#4c84d9',
+      belonging: '#d39a31',
+      neglect: '#8b8b8b',
+      greed: '#be4b4b',
+      memory: '#8a63d2'
     };
 
-    const curatedHotspots = [
+    const prompts = {
+      open: 'Add a story, concern, or memory...',
+      lost: 'What has been lost here?',
+      care: 'What do you care about here?',
+      neglect: 'What feels neglected here?',
+      remain: 'What should remain here?',
+      change: 'What should change here?'
+    };
+
+    const zoneAnchors = {
+      z1: "North West",
+      z2: "North Centre",
+      z3: "North East",
+      z4: "South West",
+      z5: "South Centre",
+      z6: "South East"
+    };
+
+    const zoneDefaults = {
+      z1: { position: "-0.18m 0.16m 0.02m", normal: "0m 1m 0m" },
+      z2: { position: "0.00m 0.20m 0.00m", normal: "0m 1m 0m" },
+      z3: { position: "0.18m 0.12m 0.08m", normal: "0m 1m 0m" },
+      z4: { position: "-0.08m 0.22m 0.10m", normal: "0m 1m 0m" },
+      z5: { position: "-0.18m 0.08m -0.12m", normal: "0m 1m 0m" },
+      z6: { position: "0.14m 0.22m -0.14m", normal: "0m 1m 0m" }
+    };
+
+    const curatedStories = [
       {
-        id: "curated-1",
-        type: "curated",
-        title: "Lost leisure spaces",
-        text: "Residents repeatedly linked local change to the disappearance of shared leisure and youth spaces.",
-        value: "neglect",
-        zone: "z2",
-        position: "0.08m 0.18m -0.02m",
-        normal: "0m 1m 0m"
+        id: 'c1',
+        type: 'curated',
+        title: 'Lost leisure spaces',
+        text: 'Residents repeatedly linked local change to the disappearance of shared leisure and youth spaces.',
+        value: 'neglect',
+        role: 'resident',
+        identity: 'anonymous',
+        name: '',
+        place: 'Leisure cluster',
+        timeTag: 'past',
+        zone: 'z2',
+        position: '0.06m 0.18m -0.02m',
+        normal: '0m 1m 0m'
       },
       {
-        id: "curated-2",
-        type: "curated",
-        title: "Trust and local support",
-        text: "Long standing organisations were often valued because people trusted them more than formal systems.",
-        value: "trust",
-        zone: "z4",
-        position: "-0.02m 0.25m 0.11m",
-        normal: "0m 1m 0m"
+        id: 'c2',
+        type: 'curated',
+        title: 'Trust in long standing organisations',
+        text: 'Long standing organisations were often valued because people trusted them more than formal systems.',
+        value: 'trust',
+        role: 'worker',
+        identity: 'anonymous',
+        name: '',
+        place: 'Community support network',
+        timeTag: 'present',
+        zone: 'z4',
+        position: '-0.02m 0.25m 0.11m',
+        normal: '0m 1m 0m'
       },
       {
-        id: "curated-3",
-        type: "curated",
-        title: "Belonging through everyday places",
-        text: "Ordinary places such as shops, libraries, routes, and meeting points became important because they anchored daily life.",
-        value: "belonging",
-        zone: "z1",
-        position: "-0.16m 0.18m 0.03m",
-        normal: "0m 1m 0m"
+        id: 'c3',
+        type: 'curated',
+        title: 'Belonging through ordinary places',
+        text: 'Ordinary places such as shops, libraries, routes, and meeting points became important because they anchored daily life.',
+        value: 'belonging',
+        role: 'resident',
+        identity: 'anonymous',
+        name: '',
+        place: 'Daily route network',
+        timeTag: 'present',
+        zone: 'z1',
+        position: '-0.16m 0.18m 0.03m',
+        normal: '0m 1m 0m'
       },
       {
-        id: "curated-4",
-        type: "curated",
-        title: "Care networks",
-        text: "Care appeared not as a policy statement but as something built through repeated acts of support, use, and presence.",
-        value: "care",
-        zone: "z5",
-        position: "-0.19m 0.10m -0.11m",
-        normal: "0m 1m 0m"
+        id: 'c4',
+        type: 'curated',
+        title: 'Care networks',
+        text: 'Care appeared not as a policy statement but as something built through repeated acts of support, use, and presence.',
+        value: 'care',
+        role: 'parent',
+        identity: 'anonymous',
+        name: '',
+        place: 'Support network',
+        timeTag: 'present',
+        zone: 'z5',
+        position: '-0.19m 0.10m -0.11m',
+        normal: '0m 1m 0m'
+      },
+      {
+        id: 'c5',
+        type: 'curated',
+        title: 'Future demand for youth provision',
+        text: 'The archive points toward a demand for future spaces that are safe, social, and genuinely shaped by local people.',
+        value: 'care',
+        role: 'youth',
+        identity: 'anonymous',
+        name: '',
+        place: 'Future youth provision',
+        timeTag: 'future',
+        zone: 'z6',
+        position: '0.14m 0.22m -0.14m',
+        normal: '0m 1m 0m'
       }
     ];
 
-    const valueColors = {
-      care: getCSSVar('--care'),
-      trust: getCSSVar('--trust'),
-      belonging: getCSSVar('--belonging'),
-      neglect: getCSSVar('--neglect'),
-      greed: getCSSVar('--greed'),
-      memory: getCSSVar('--memory')
-    };
+    let activeValueFilter = 'all';
+    let selectedZone = null;
+    let placementMode = false;
+    let pendingPlacement = null;
+    let selectedStoryId = null;
+    let routeMode = false;
+    let routeIndex = 0;
+    let exhibitionMode = false;
+    let exhibitionTimer = null;
+    let clusterMode = false;
+    let recording = false;
+    let mediaRecorder = null;
+    let audioChunks = [];
+    let pendingAudioDataUrl = '';
+    let recognition = null;
+    let isListening = false;
+    let ambientCtx = null;
+    let ambientOsc = null;
+    let ambientGain = null;
 
-    function getCSSVar(name) {
-      return getComputedStyle(document.documentElement).getPropertyValue(name).trim();
-    }
-
-    function showStatus(message, isError = false) {
+    function showStatus(text, isError = false) {
       statusMessage.style.display = 'block';
-      statusMessage.textContent = message;
-      statusMessage.style.color = isError ? '#9b1c1c' : '#111';
+      statusMessage.textContent = text;
+      statusMessage.style.color = isError ? '#a12727' : '#111';
       clearTimeout(showStatus._timer);
       showStatus._timer = setTimeout(() => {
         statusMessage.style.display = 'none';
-      }, 3000);
+      }, 3200);
     }
 
-    function getSavedSubmissions() {
+    function getUserStories() {
       try {
         return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
       } catch {
@@ -691,159 +1058,515 @@
       }
     }
 
-    function saveSubmissions(items) {
+    function saveUserStories(items) {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
     }
 
-    function getNextAnchor(zone, existingCountInZone) {
-      const anchors = zoneAnchors[zone] || zoneAnchors.z1;
-      return anchors[existingCountInZone % anchors.length];
+    function getAudioStore() {
+      try {
+        return JSON.parse(localStorage.getItem(AUDIO_STORAGE_KEY)) || {};
+      } catch {
+        return {};
+      }
     }
 
-    function truncate(text, max = 24) {
-      return text.length > max ? text.slice(0, max - 1) + '…' : text;
+    function saveAudioStore(store) {
+      localStorage.setItem(AUDIO_STORAGE_KEY, JSON.stringify(store));
     }
 
-    function prettyValue(value) {
-      return value.charAt(0).toUpperCase() + value.slice(1);
+    function getAllStories() {
+      return [...curatedStories, ...getUserStories()];
     }
 
-    function hotspotMetaLine(item) {
-      const source = item.type === 'curated' ? 'Curated hotspot' : 'Community contribution';
-      return `${source} • ${prettyValue(item.value)} • ${item.zone.toUpperCase()}`;
+    function getVisibleStories() {
+      const search = searchInput.value.trim().toLowerCase();
+
+      return getAllStories().filter(story => {
+        const valueMatch = activeValueFilter === 'all' || story.value === activeValueFilter;
+        const layerMatch = layerFilter.value === 'all' || story.type === layerFilter.value;
+        const roleMatch = roleFilter.value === 'all' || story.role === roleFilter.value;
+        const timeMatch = timelineMode.value === 'all' || story.timeTag === timelineMode.value;
+        const zoneMatch = !selectedZone || story.zone === selectedZone;
+        const searchMatch = !search || [
+          story.title || '',
+          story.text || '',
+          story.place || '',
+          story.value || '',
+          story.role || '',
+          story.name || ''
+        ].join(' ').toLowerCase().includes(search);
+
+        return valueMatch && layerMatch && roleMatch && timeMatch && zoneMatch && searchMatch;
+      });
     }
 
-    function openDetail(item) {
-      detailTitle.textContent = item.title || prettyValue(item.value);
-      detailMeta.textContent = hotspotMetaLine(item);
-      detailText.textContent = item.text;
-      detailCard.classList.add('show');
+    function getZoneDensity(zone) {
+      return getVisibleStories().filter(story => story.zone === zone).length;
     }
 
-    closeDetail.addEventListener('click', () => {
-      detailCard.classList.remove('show');
-    });
+    function densityClass(density) {
+      if (density >= 8) return 'heat-5';
+      if (density >= 6) return 'heat-4';
+      if (density >= 4) return 'heat-3';
+      if (density >= 2) return 'heat-2';
+      return 'heat-1';
+    }
 
-    function createHotspotElement(item) {
-      const button = document.createElement('button');
-      button.className = `hotspot ${item.type}`;
-      button.slot = `hotspot-${item.id}`;
-      button.dataset.id = item.id;
-      button.dataset.value = item.value;
-      button.dataset.type = item.type;
-      button.dataset.position = item.position;
-      button.dataset.normal = item.normal;
+    function titleFromStory(story) {
+      if (story.title) return story.title;
+      if (story.place) return story.place;
+      return 'Community voice';
+    }
 
-      button.setAttribute('data-position', item.position);
-      button.setAttribute('data-normal', item.normal);
-      button.setAttribute('aria-label', item.title || item.text);
+    function identityLabel(story) {
+      if (story.identity === 'name' && story.name) return story.name;
+      if (story.identity === 'initials' && story.name) return story.name;
+      return 'Anonymous';
+    }
+
+    function metaLine(story) {
+      const parts = [
+        story.type === 'curated' ? 'Curated' : 'Public',
+        story.value.charAt(0).toUpperCase() + story.value.slice(1),
+        story.role.charAt(0).toUpperCase() + story.role.slice(1),
+        story.timeTag.charAt(0).toUpperCase() + story.timeTag.slice(1)
+      ];
+      if (story.place) parts.push(story.place);
+      return parts.join(' • ');
+    }
+
+    function createHotspotEl(story) {
+      const btn = document.createElement('button');
+      btn.className = `hotspot ${story.type} ${densityClass(getZoneDensity(story.zone))}`;
+      btn.slot = `hotspot-${story.id}`;
+      btn.dataset.id = story.id;
+      btn.dataset.value = story.value;
+      btn.dataset.type = story.type;
+      btn.dataset.zone = story.zone;
+      btn.dataset.role = story.role;
+      btn.setAttribute('data-position', story.position);
+      btn.setAttribute('data-normal', story.normal);
+      btn.setAttribute('aria-label', titleFromStory(story));
 
       const dot = document.createElement('span');
       dot.className = 'hotspot-dot';
-      dot.style.background = valueColors[item.value] || '#111';
+      dot.style.background = valueColors[story.value] || '#111';
 
       const label = document.createElement('span');
       label.className = 'hotspot-label';
-      label.textContent = item.type === 'curated'
-        ? item.title
-        : truncate(item.text, 22);
+      label.textContent = displayMode.value === 'labels' || displayMode.value === 'curated_focus'
+        ? titleFromStory(story)
+        : (story.text || '').slice(0, 24) + ((story.text || '').length > 24 ? '…' : '');
 
-      button.appendChild(dot);
-      button.appendChild(label);
+      btn.append(dot, label);
 
-      button.addEventListener('click', (e) => {
+      btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        openDetail(item);
+        selectedStoryId = story.id;
+        openDetail(story);
       });
 
-      return button;
-    }
-
-    function clearRenderedHotspots() {
-      viewer.querySelectorAll('.hotspot').forEach(el => el.remove());
+      return btn;
     }
 
     function renderHotspots() {
-      clearRenderedHotspots();
+      viewer.querySelectorAll('.hotspot').forEach(el => el.remove());
 
-      const saved = getSavedSubmissions();
-      const allItems = [...curatedHotspots, ...saved];
+      const visible = getVisibleStories();
 
-      allItems.forEach(item => {
-        const el = createHotspotElement(item);
+      visible.forEach(story => {
+        const el = createHotspotEl(story);
         viewer.appendChild(el);
       });
 
-      applyFilter(activeFilter);
+      applyDisplayMode();
     }
 
-    function applyFilter(filter) {
-      activeFilter = filter;
+    function applyDisplayMode() {
+      const mode = displayMode.value;
+      const all = viewer.querySelectorAll('.hotspot');
 
-      document.querySelectorAll('.chip').forEach(chip => {
-        chip.classList.toggle('active', chip.dataset.filter === filter);
-      });
+      all.forEach(el => {
+        const isCurated = el.dataset.type === 'curated';
+        const label = el.querySelector('.hotspot-label');
 
-      viewer.querySelectorAll('.hotspot').forEach(el => {
-        const value = el.dataset.value;
-        if (filter === 'all' || value === filter) {
-          el.classList.remove('hidden');
-          el.classList.remove('dimmed');
-        } else {
-          el.classList.add('hidden');
+        el.classList.remove('dimmed');
+        el.classList.remove('hidden');
+
+        if (mode === 'markers') {
+          if (label) label.style.display = '';
+        } else if (mode === 'labels') {
+          if (label) label.style.display = 'inline-flex';
+        } else if (mode === 'heatmap') {
+          if (label) label.style.display = 'none';
+        } else if (mode === 'curated_focus') {
+          if (!isCurated) el.classList.add('dimmed');
+          if (label) label.style.display = '';
         }
       });
     }
 
-    filters.addEventListener('click', (e) => {
-      const btn = e.target.closest('.chip');
-      if (!btn) return;
-      applyFilter(btn.dataset.filter);
-    });
-
-    function addSubmission(text, value, zone) {
-      const saved = getSavedSubmissions();
-      const countInZone = saved.filter(item => item.zone === zone).length;
-      const anchor = getNextAnchor(zone, countInZone);
-
-      const item = {
-        id: 'user-' + Date.now(),
-        type: 'user',
-        title: 'Community voice',
-        text,
-        value,
-        zone,
-        position: anchor.position,
-        normal: anchor.normal
+    function renderStats() {
+      const visible = getVisibleStories();
+      const counts = {
+        total: visible.length,
+        care: visible.filter(s => s.value === 'care').length,
+        trust: visible.filter(s => s.value === 'trust').length,
+        belonging: visible.filter(s => s.value === 'belonging').length,
+        neglect: visible.filter(s => s.value === 'neglect').length,
+        greed: visible.filter(s => s.value === 'greed').length,
+        memory: visible.filter(s => s.value === 'memory').length,
+        public: visible.filter(s => s.type === 'user').length,
+        curated: visible.filter(s => s.type === 'curated').length
       };
 
-      saved.push(item);
-      saveSubmissions(saved);
-      renderHotspots();
-      openDetail(item);
+      statsGrid.innerHTML = `
+        <div class="stat"><strong>${counts.total}</strong>Total</div>
+        <div class="stat"><strong>${counts.public}</strong>Public</div>
+        <div class="stat"><strong>${counts.curated}</strong>Curated</div>
+        <div class="stat"><strong>${counts.care}</strong>Care</div>
+        <div class="stat"><strong>${counts.trust}</strong>Trust</div>
+        <div class="stat"><strong>${counts.belonging}</strong>Belonging</div>
+        <div class="stat"><strong>${counts.neglect}</strong>Neglect</div>
+        <div class="stat"><strong>${counts.greed}</strong>Greed</div>
+        <div class="stat"><strong>${counts.memory}</strong>Memory</div>
+      `;
     }
 
-    form.addEventListener('submit', (e) => {
+    function renderZoneMap() {
+      zoneMap.innerHTML = '';
+
+      Object.entries(zoneAnchors).forEach(([zoneId, zoneName]) => {
+        const btn = document.createElement('button');
+        btn.className = `zone ${selectedZone === zoneId ? 'active' : ''}`;
+        btn.type = 'button';
+        btn.textContent = `${zoneId.toUpperCase()}`;
+        btn.title = `${zoneName} • ${getZoneDensity(zoneId)} stories`;
+
+        btn.addEventListener('click', () => {
+          selectedZone = selectedZone === zoneId ? null : zoneId;
+          refreshAll();
+        });
+
+        zoneMap.appendChild(btn);
+      });
+    }
+
+    function getStoryById(id) {
+      return getAllStories().find(story => story.id === id);
+    }
+
+    function openDetail(story) {
+      detailTitle.textContent = titleFromStory(story);
+      detailMeta.textContent = `${metaLine(story)} • ${identityLabel(story)}`;
+      detailText.textContent = story.text || '';
+      selectedStoryId = story.id;
+
+      const audioStore = getAudioStore();
+      const audioSrc = audioStore[story.id];
+      if (audioSrc) {
+        detailAudio.src = audioSrc;
+        detailAudio.style.display = 'block';
+      } else {
+        detailAudio.pause();
+        detailAudio.removeAttribute('src');
+        detailAudio.style.display = 'none';
+      }
+
+      detailCard.classList.add('show');
+    }
+
+    function closeDetailCard() {
+      detailCard.classList.remove('show');
+      detailAudio.pause();
+    }
+
+    function refreshVoicesDrawer() {
+      const stories = getVisibleStories();
+      voicesBody.innerHTML = '';
+
+      if (clusterMode) {
+        const clusters = buildKeywordClusters(stories);
+        Object.entries(clusters).forEach(([name, items]) => {
+          if (!items.length) return;
+          const block = document.createElement('div');
+          block.className = 'story';
+          block.innerHTML = `
+            <div class="story-top">
+              <div>
+                <h4>${name}</h4>
+                <small>${items.length} matching stories</small>
+              </div>
+            </div>
+            <small>${items.slice(0, 3).map(i => titleFromStory(i)).join(' • ')}</small>
+          `;
+          block.addEventListener('click', () => {
+            searchInput.value = keywordForCluster(name);
+            clusterMode = false;
+            clusterToggle.textContent = 'Keyword Clusters';
+            refreshAll();
+          });
+          voicesBody.appendChild(block);
+        });
+        return;
+      }
+
+      stories
+        .slice()
+        .reverse()
+        .forEach(story => {
+          const card = document.createElement('div');
+          card.className = 'story';
+
+          const color = valueColors[story.value] || '#111';
+          const identity = identityLabel(story);
+
+          card.innerHTML = `
+            <div class="story-top">
+              <div>
+                <h4>${titleFromStory(story)}</h4>
+                <small>${metaLine(story)}</small>
+                <small>${identity}</small>
+              </div>
+            </div>
+            <div>${escapeHtml(story.text || '')}</div>
+            <div class="tag-row">
+              <span class="tag" style="background:${color}">${story.value}</span>
+              <span class="tag" style="background:#111">${story.type}</span>
+              <span class="tag" style="background:#555">${story.role}</span>
+            </div>
+          `;
+
+          card.addEventListener('click', () => openDetail(story));
+          voicesBody.appendChild(card);
+        });
+
+      if (!stories.length) {
+        voicesBody.innerHTML = `<div class="story">No stories match the current filters.</div>`;
+      }
+    }
+
+    function escapeHtml(text) {
+      return (text || '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;');
+    }
+
+    function buildKeywordClusters(stories) {
+      const groups = {
+        Youth: ['youth', 'young', 'teen', 'children', 'kids', 'play'],
+        Loss: ['lost', 'closed', 'closure', 'gone', 'disappear', 'disappeared'],
+        Care: ['care', 'support', 'help', 'safe', 'welcome'],
+        Trust: ['trust', 'reliable', 'known', 'long standing'],
+        Change: ['change', 'redevelopment', 'future', 'new', 'build'],
+        Memory: ['remember', 'memory', 'used to', 'route', 'family']
+      };
+
+      const result = {};
+      Object.keys(groups).forEach(key => result[key] = []);
+
+      stories.forEach(story => {
+        const hay = `${story.title || ''} ${story.text || ''} ${story.place || ''}`.toLowerCase();
+        Object.entries(groups).forEach(([group, words]) => {
+          if (words.some(word => hay.includes(word))) {
+            result[group].push(story);
+          }
+        });
+      });
+
+      return result;
+    }
+
+    function keywordForCluster(clusterName) {
+      const map = {
+        Youth: 'youth',
+        Loss: 'lost',
+        Care: 'care',
+        Trust: 'trust',
+        Change: 'change',
+        Memory: 'memory'
+      };
+      return map[clusterName] || '';
+    }
+
+    function refreshAll() {
+      renderHotspots();
+      renderStats();
+      renderZoneMap();
+      refreshVoicesDrawer();
+    }
+
+    function setPromptPlaceholder() {
+      messageInput.placeholder = prompts[promptInput.value] || prompts.open;
+    }
+
+    function setActiveValueFilter(value) {
+      activeValueFilter = value;
+      document.querySelectorAll('.value-filter').forEach(btn => {
+        btn.classList.toggle('active', btn.dataset.value === value);
+      });
+      refreshAll();
+    }
+
+    function guessZoneFromPosition(positionString) {
+      if (!positionString) return 'z2';
+      const nums = positionString.replaceAll('m', '').split(' ').map(Number);
+      const x = nums[0] || 0;
+      const z = nums[2] || 0;
+
+      if (x < -0.08 && z >= 0) return 'z1';
+      if (x >= -0.08 && x <= 0.08 && z >= 0) return 'z2';
+      if (x > 0.08 && z >= 0) return 'z3';
+      if (x < -0.08 && z < 0) return 'z4';
+      if (x >= -0.08 && x <= 0.08 && z < 0) return 'z5';
+      return 'z6';
+    }
+
+    function startPlacementMode() {
+      placementMode = true;
+      pendingPlacement = null;
+      viewer.classList.add('placement-mode');
+      floatingNote.classList.add('show');
+      placementToggle.textContent = 'Cancel Placement';
+    }
+
+    function stopPlacementMode() {
+      placementMode = false;
+      viewer.classList.remove('placement-mode');
+      floatingNote.classList.remove('show');
+      placementToggle.textContent = 'Tap to Place';
+    }
+
+    viewer.addEventListener('click', (event) => {
+      if (!placementMode) return;
+
+      if (typeof viewer.positionAndNormalFromPoint === 'function') {
+        const hit = viewer.positionAndNormalFromPoint(event.clientX, event.clientY);
+        if (hit && hit.position && hit.normal) {
+          pendingPlacement = {
+            position: hit.position.toString(),
+            normal: hit.normal.toString(),
+            zone: guessZoneFromPosition(hit.position.toString())
+          };
+          showStatus(`Marker position captured in ${pendingPlacement.zone.toUpperCase()}. Now add your story.`);
+          stopPlacementMode();
+          return;
+        }
+      }
+
+      pendingPlacement = {
+        ...zoneDefaults.z2,
+        zone: 'z2'
+      };
+      showStatus('Precise hit detection was not available, so a default position was selected.');
+      stopPlacementMode();
+    });
+
+    function buildSubmissionName() {
+      const raw = (nameInput.value || nameInputMobile.value || '').trim();
+      if (!raw) return '';
+      if (identityInput.value === 'initials') {
+        return raw
+          .split(/\s+/)
+          .map(part => part[0]?.toUpperCase() || '')
+          .join('');
+      }
+      return raw;
+    }
+
+    function addStory(story) {
+      const items = getUserStories();
+      items.push(story);
+      saveUserStories(items);
+
+      if (story.audioDataUrl) {
+        const audioStore = getAudioStore();
+        audioStore[story.id] = story.audioDataUrl;
+        saveAudioStore(audioStore);
+      }
+
+      refreshAll();
+      openDetail(story);
+    }
+
+    composerForm.addEventListener('submit', (e) => {
       e.preventDefault();
 
       const text = messageInput.value.trim();
-      const value = valueInput.value;
-      const zone = zoneInput.value;
-
       if (!text) return;
 
-      sendButton.disabled = true;
-      sendButton.textContent = 'Adding…';
+      submitBtn.disabled = true;
+      submitBtn.textContent = 'Adding…';
 
-      addSubmission(text, value, zone);
+      const placement = pendingPlacement || { ...zoneDefaults.z2, zone: 'z2' };
 
-      form.reset();
+      const story = {
+        id: 'u' + Date.now(),
+        type: 'user',
+        title: placeInput.value.trim() || '',
+        text,
+        value: valueInput.value,
+        role: roleInput.value,
+        identity: identityInput.value,
+        name: buildSubmissionName(),
+        place: placeInput.value.trim(),
+        timeTag: timeTagInput.value,
+        prompt: promptInput.value,
+        zone: placement.zone,
+        position: placement.position,
+        normal: placement.normal,
+        audioDataUrl: pendingAudioDataUrl || ''
+      };
+
+      addStory(story);
+
+      composerForm.reset();
       valueInput.value = 'memory';
-      zoneInput.value = 'z1';
+      roleInput.value = 'resident';
+      identityInput.value = 'anonymous';
+      timeTagInput.value = 'present';
+      promptInput.value = 'open';
+      setPromptPlaceholder();
+      pendingPlacement = null;
+      pendingAudioDataUrl = '';
+      recordAudioBtn.textContent = 'Record Audio';
+      submitBtn.disabled = false;
+      submitBtn.textContent = 'Add';
 
-      sendButton.disabled = false;
-      sendButton.textContent = 'Add';
-      showStatus('Contribution added to the Value Lab.');
+      showStatus('Story added to the Value Lab.');
+    });
+
+    promptInput.addEventListener('change', setPromptPlaceholder);
+
+    document.querySelectorAll('.value-filter').forEach(btn => {
+      btn.addEventListener('click', () => setActiveValueFilter(btn.dataset.value));
+    });
+
+    [layerFilter, roleFilter, displayMode, timelineMode].forEach(el => {
+      el.addEventListener('change', refreshAll);
+    });
+
+    searchInput.addEventListener('input', refreshAll);
+    clearSearch.addEventListener('click', () => {
+      searchInput.value = '';
+      refreshAll();
+    });
+
+    voicesToggle.addEventListener('click', () => {
+      voicesDrawer.classList.toggle('show');
+      refreshVoicesDrawer();
+    });
+
+    closeVoices.addEventListener('click', () => {
+      voicesDrawer.classList.remove('show');
+    });
+
+    closeDetail.addEventListener('click', closeDetailCard);
+
+    placementToggle.addEventListener('click', () => {
+      if (placementMode) stopPlacementMode();
+      else startPlacementMode();
     });
 
     arButton.addEventListener('click', async () => {
@@ -858,20 +1581,147 @@
       }
     });
 
-    viewer.addEventListener('load', () => {
-      loadingOverlay.classList.add('hidden');
-      renderHotspots();
+    openMapsBtn.addEventListener('click', () => {
+      const story = getStoryById(selectedStoryId);
+      if (!story) return;
+      const query = encodeURIComponent(story.place || titleFromStory(story));
+      window.open(`https://www.google.com/maps/search/?api=1&query=${query}`, '_blank');
     });
 
-    // Voice input
-    let recognition = null;
-    let isRecording = false;
+    shareBtn.addEventListener('click', async () => {
+      const story = getStoryById(selectedStoryId);
+      if (!story) return;
 
-    function setupVoice() {
+      const text = `${titleFromStory(story)}\n${story.text}\n${metaLine(story)}`;
+
+      if (navigator.share) {
+        try {
+          await navigator.share({
+            title: 'Value Lab Story',
+            text
+          });
+        } catch {}
+      } else {
+        try {
+          await navigator.clipboard.writeText(text);
+          showStatus('Story copied to clipboard.');
+        } catch {
+          showStatus('Could not share this story.', true);
+        }
+      }
+    });
+
+    screenshotBtn.addEventListener('click', async () => {
+      try {
+        const canvas = await html2canvas(detailCard, { backgroundColor: null, scale: 2 });
+        const link = document.createElement('a');
+        link.href = canvas.toDataURL('image/png');
+        link.download = 'value-lab-story.png';
+        link.click();
+      } catch {
+        showStatus('Screenshot failed.', true);
+      }
+    });
+
+    function getRouteStories() {
+      return getVisibleStories().filter(story => story.type === 'curated');
+    }
+
+    function stepRoute() {
+      const stories = getRouteStories();
+      if (!stories.length) return;
+      routeIndex = (routeIndex + 1) % stories.length;
+      openDetail(stories[routeIndex]);
+    }
+
+    nextRouteBtn.addEventListener('click', stepRoute);
+
+    routeToggle.addEventListener('click', () => {
+      routeMode = !routeMode;
+      routeToggle.textContent = routeMode ? 'Exit Story Mode' : 'Spatial Story Mode';
+
+      if (routeMode) {
+        const stories = getRouteStories();
+        if (stories.length) {
+          routeIndex = 0;
+          openDetail(stories[0]);
+          showStatus('Spatial Story Mode started.');
+        }
+      } else {
+        closeDetailCard();
+      }
+    });
+
+    exhibitionToggle.addEventListener('click', () => {
+      exhibitionMode = !exhibitionMode;
+      exhibitionToggle.textContent = exhibitionMode ? 'Stop Exhibition' : 'Exhibition Mode';
+
+      if (exhibitionMode) {
+        const stories = getVisibleStories();
+        let i = 0;
+        if (stories.length) openDetail(stories[0]);
+
+        clearInterval(exhibitionTimer);
+        exhibitionTimer = setInterval(() => {
+          const visible = getVisibleStories();
+          if (!visible.length) return;
+          i = (i + 1) % visible.length;
+          openDetail(visible[i]);
+        }, 5000);
+
+        showStatus('Exhibition Mode started.');
+      } else {
+        clearInterval(exhibitionTimer);
+        exhibitionTimer = null;
+      }
+    });
+
+    clusterToggle.addEventListener('click', () => {
+      clusterMode = !clusterMode;
+      clusterToggle.textContent = clusterMode ? 'All Stories' : 'Keyword Clusters';
+      refreshVoicesDrawer();
+    });
+
+    exportJson.addEventListener('click', () => {
+      const blob = new Blob([JSON.stringify(getAllStories(), null, 2)], {
+        type: 'application/json'
+      });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'value-lab-export.json';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    exportCsv.addEventListener('click', () => {
+      const rows = getAllStories();
+      const headers = [
+        'id','type','title','text','value','role','identity','name','place',
+        'timeTag','prompt','zone','position','normal'
+      ];
+
+      const csv = [
+        headers.join(','),
+        ...rows.map(row => headers.map(h => csvCell(row[h] || '')).join(','))
+      ].join('\n');
+
+      const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'value-lab-export.csv';
+      link.click();
+      URL.revokeObjectURL(link.href);
+    });
+
+    function csvCell(value) {
+      return `"${String(value).replaceAll('"', '""')}"`;
+    }
+
+    function setupVoiceToText() {
       const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
       if (!SpeechRecognition) {
-        voiceButton.disabled = true;
-        voiceButton.textContent = 'No Voice';
+        voiceTextBtn.disabled = true;
+        voiceTextBtn.textContent = 'No Voice';
         return;
       }
 
@@ -881,10 +1731,10 @@
       recognition.continuous = false;
 
       recognition.onstart = () => {
-        isRecording = true;
-        voiceButton.classList.add('recording');
-        voiceButton.textContent = 'Listening…';
-        showStatus('Voice input started.');
+        isListening = true;
+        voiceTextBtn.textContent = 'Listening…';
+        voiceTextBtn.style.background = '#be4b4b';
+        voiceTextBtn.style.color = 'white';
       };
 
       recognition.onresult = (event) => {
@@ -895,57 +1745,153 @@
         messageInput.value = transcript.trim();
       };
 
-      recognition.onerror = () => {
-        isRecording = false;
-        voiceButton.classList.remove('recording');
-        voiceButton.textContent = 'Voice';
-        showStatus('Voice input failed.', true);
-      };
-
       recognition.onend = () => {
-        isRecording = false;
-        voiceButton.classList.remove('recording');
-        voiceButton.textContent = 'Voice';
+        isListening = false;
+        voiceTextBtn.textContent = 'Voice to Text';
+        voiceTextBtn.style.background = '';
+        voiceTextBtn.style.color = '';
       };
 
-      voiceButton.addEventListener('click', () => {
-        if (!recognition) return;
+      recognition.onerror = () => {
+        showStatus('Voice to text failed.', true);
+        isListening = false;
+        voiceTextBtn.textContent = 'Voice to Text';
+        voiceTextBtn.style.background = '';
+        voiceTextBtn.style.color = '';
+      };
 
-        if (isRecording) {
-          recognition.stop();
+      voiceTextBtn.addEventListener('click', () => {
+        if (!recognition) return;
+        if (isListening) recognition.stop();
+        else recognition.start();
+      });
+    }
+
+    async function setupAudioRecording() {
+      if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
+        recordAudioBtn.disabled = true;
+        recordAudioBtn.textContent = 'No Mic';
+        return;
+      }
+
+      recordAudioBtn.addEventListener('click', async () => {
+        if (!recording) {
+          try {
+            const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            audioChunks = [];
+            mediaRecorder = new MediaRecorder(stream);
+
+            mediaRecorder.ondataavailable = (e) => {
+              if (e.data.size > 0) audioChunks.push(e.data);
+            };
+
+            mediaRecorder.onstop = async () => {
+              const blob = new Blob(audioChunks, { type: 'audio/webm' });
+              pendingAudioDataUrl = await blobToDataUrl(blob);
+              stream.getTracks().forEach(track => track.stop());
+              recordAudioBtn.textContent = 'Audio Ready';
+              showStatus('Audio attached to next submission.');
+            };
+
+            mediaRecorder.start();
+            recording = true;
+            recordAudioBtn.textContent = 'Stop Recording';
+            recordAudioBtn.style.background = '#be4b4b';
+            recordAudioBtn.style.color = 'white';
+            showStatus('Recording audio.');
+          } catch {
+            showStatus('Microphone access failed.', true);
+          }
         } else {
-          recognition.start();
+          mediaRecorder.stop();
+          recording = false;
+          recordAudioBtn.style.background = '';
+          recordAudioBtn.style.color = '';
         }
       });
     }
 
-    setupVoice();
-
-    // Demo starter contributions on first load
-    if (!localStorage.getItem(STORAGE_KEY)) {
-      saveSubmissions([
-        {
-          id: 'user-demo-1',
-          type: 'user',
-          title: 'Community voice',
-          text: 'The route to the station feels important because it connects everyday life, family, and routine.',
-          value: 'memory',
-          zone: 'z3',
-          position: '0.17m 0.13m 0.10m',
-          normal: '0m 1m 0m'
-        },
-        {
-          id: 'user-demo-2',
-          type: 'user',
-          title: 'Community voice',
-          text: 'We need more youth spaces that feel safe and actually belong to local people.',
-          value: 'care',
-          zone: 'z6',
-          position: '0.15m 0.23m -0.12m',
-          normal: '0m 1m 0m'
-        }
-      ]);
+    function blobToDataUrl(blob) {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onloadend = () => resolve(reader.result);
+        reader.readAsDataURL(blob);
+      });
     }
+
+    ambientToggle.addEventListener('click', () => {
+      if (!ambientCtx) {
+        ambientCtx = new (window.AudioContext || window.webkitAudioContext)();
+        ambientOsc = ambientCtx.createOscillator();
+        ambientGain = ambientCtx.createGain();
+
+        ambientOsc.type = 'sine';
+        ambientOsc.frequency.value = 110;
+        ambientGain.gain.value = 0.0001;
+
+        ambientOsc.connect(ambientGain);
+        ambientGain.connect(ambientCtx.destination);
+        ambientOsc.start();
+      }
+
+      if (ambientGain.gain.value > 0.001) {
+        ambientGain.gain.setTargetAtTime(0.0001, ambientCtx.currentTime, 0.2);
+        ambientToggle.textContent = 'Ambient';
+      } else {
+        ambientGain.gain.setTargetAtTime(0.015, ambientCtx.currentTime, 0.3);
+        ambientToggle.textContent = 'Ambient On';
+      }
+    });
+
+    function seedDataIfEmpty() {
+      if (!localStorage.getItem(STORAGE_KEY)) {
+        saveUserStories([
+          {
+            id: 'u-demo-1',
+            type: 'user',
+            title: 'Station route',
+            text: 'The route to the station matters because it structures family routines and everyday belonging.',
+            value: 'memory',
+            role: 'resident',
+            identity: 'anonymous',
+            name: '',
+            place: 'Station route',
+            timeTag: 'present',
+            prompt: 'open',
+            zone: 'z3',
+            position: '0.17m 0.13m 0.10m',
+            normal: '0m 1m 0m'
+          },
+          {
+            id: 'u-demo-2',
+            type: 'user',
+            title: 'Youth space',
+            text: 'We need more youth spaces that feel safe and genuinely belong to local people.',
+            value: 'care',
+            role: 'youth',
+            identity: 'anonymous',
+            name: '',
+            place: 'Youth cluster',
+            timeTag: 'future',
+            prompt: 'change',
+            zone: 'z6',
+            position: '0.15m 0.23m -0.12m',
+            normal: '0m 1m 0m'
+          }
+        ]);
+      }
+    }
+
+    viewer.addEventListener('load', () => {
+      loadingOverlay.classList.add('hidden');
+      refreshAll();
+    });
+
+    setPromptPlaceholder();
+    setupVoiceToText();
+    setupAudioRecording();
+    seedDataIfEmpty();
+    refreshAll();
   </script>
 </body>
 </html>
