@@ -1,217 +1,534 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Value Lab</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Value Space</title>
 
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
+<style>
+html, body {
+  margin: 0;
+  height: 100%;
+  background: #f4f4f4;
+  overflow: hidden;
+  font-family: Arial, sans-serif;
+}
 
-  <style>
-    html, body{
-      margin:0;
-      font-family:Arial, sans-serif;
-      background:#f2f2f2;
-      color:#111;
-    }
+canvas {
+  display: block;
+}
 
-    model-viewer{
-      width:100%;
-      height:65vh;
-      background:#fff;
-    }
+.ui {
+  position: fixed;
+  bottom: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  gap: 8px;
+  background: rgba(255,255,255,0.92);
+  padding: 10px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 10;
+}
 
-    .wrap{
-      padding:16px;
-      max-width:900px;
-      margin:auto;
-    }
+input {
+  border: 1px solid #ccc;
+  padding: 10px 12px;
+  width: 240px;
+  border-radius: 10px;
+  font-size: 14px;
+}
 
-    h1{
-      margin:0;
-      font-size:30px;
-    }
+button {
+  border: none;
+  background: black;
+  color: white;
+  padding: 10px 14px;
+  cursor: pointer;
+  border-radius: 10px;
+  font-weight: bold;
+}
 
-    p{
-      margin:6px 0 16px;
-      color:#666;
-      font-size:14px;
-    }
+.info {
+  position: fixed;
+  top: 16px;
+  left: 16px;
+  background: rgba(255,255,255,0.92);
+  padding: 12px 14px;
+  border-radius: 14px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.12);
+  z-index: 10;
+  max-width: 320px;
+}
 
-    .controls{
-      margin-bottom:14px;
-    }
+.info h1 {
+  margin: 0 0 6px;
+  font-size: 20px;
+}
 
-    .main-btn{
-      border:none;
-      padding:12px 16px;
-      border-radius:999px;
-      cursor:pointer;
-      font-weight:bold;
-      background:black;
-      color:white;
-      font-size:14px;
-    }
+.info p {
+  margin: 0;
+  color: #666;
+  font-size: 13px;
+  line-height: 1.4;
+}
 
-    .value-picker{
-      display:grid;
-      grid-template-columns:repeat(3, 1fr);
-      gap:10px;
-      margin-bottom:12px;
-    }
+.status {
+  position: fixed;
+  bottom: 78px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: rgba(255,255,255,0.9);
+  padding: 8px 12px;
+  border-radius: 999px;
+  font-size: 12px;
+  color: #555;
+  z-index: 10;
+  min-width: 120px;
+  text-align: center;
+}
 
-    .value-btn{
-      border:none;
-      padding:14px;
-      border-radius:14px;
-      cursor:pointer;
-      background:#ddd;
-      color:#111;
-      font-weight:bold;
-      font-size:14px;
-      text-transform:capitalize;
-      opacity:0.7;
-      transition:all .15s ease;
-    }
+@media (max-width: 700px) {
+  .ui {
+    width: calc(100vw - 24px);
+    left: 12px;
+    right: 12px;
+    transform: none;
+  }
 
-    .value-btn.active{
-      opacity:1;
-      background:#bbb;
-      transform:scale(1.03);
-      box-shadow:0 8px 20px rgba(0,0,0,0.15);
-    }
-
-    .selected{
-      font-size:13px;
-      color:#666;
-      margin-bottom:10px;
-    }
-
-    textarea{
-      width:100%;
-      padding:14px;
-      border-radius:12px;
-      border:1px solid #ddd;
-      margin-bottom:10px;
-      font-size:14px;
-      min-height:100px;
-      resize:vertical;
-    }
-
-    .status{
-      font-size:13px;
-      color:#666;
-      margin-top:6px;
-    }
-
-    @media (max-width:600px){
-      .value-picker{
-        grid-template-columns:repeat(2, 1fr);
-      }
-    }
-  </style>
+  input {
+    width: 100%;
+  }
+}
+</style>
 </head>
+
 <body>
 
-  <model-viewer
-    id="viewer"
-    src="./model.glb?v=5"
-    ar
-    ar-modes="webxr scene-viewer quick-look"
-    camera-controls
-    auto-rotate
-    shadow-intensity="1"
-    exposure="1"
-    environment-image="neutral">
-  </model-viewer>
+<div class="info">
+  <h1>Value Lab</h1>
+  <p>Click a value plane. Read the quotes. Add your thought to that value.</p>
+</div>
 
-  <div class="wrap">
-    <h1>Value Lab</h1>
-    <p>Read the model, choose a value, then add your thought to that value.</p>
+<div class="ui">
+  <input id="input" placeholder="Add thought..." />
+  <button id="send">Send</button>
+</div>
 
-    <div class="controls">
-      <button class="main-btn" id="arBtn">View in AR</button>
-    </div>
+<div class="status" id="status">Select a value</div>
 
-    <div class="value-picker" id="valuePicker">
-      <button class="value-btn" data-value="care">Care</button>
-      <button class="value-btn" data-value="neglect">Neglect</button>
-      <button class="value-btn" data-value="greed">Greed</button>
-      <button class="value-btn" data-value="belonging">Belonging</button>
-      <button class="value-btn" data-value="trust">Trust</button>
-      <button class="value-btn" data-value="efficiency">Efficiency</button>
-    </div>
+<script type="module">
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.160/build/three.module.js';
+import { OrbitControls } from 'https://cdn.jsdelivr.net/npm/three@0.160/examples/jsm/controls/OrbitControls.js';
 
-    <div class="selected" id="selectedLabel">No value selected</div>
+// -------------------- SCENE --------------------
+const scene = new THREE.Scene();
+scene.background = new THREE.Color(0xf4f4f4);
 
-    <textarea id="input" placeholder="Write your thought..."></textarea>
+const camera = new THREE.PerspectiveCamera(60, window.innerWidth/window.innerHeight, 0.1, 100);
+camera.position.set(0, 2.2, 7);
 
-    <button class="main-btn" id="send">Send</button>
-    <div class="status" id="status"></div>
-  </div>
+const renderer = new THREE.WebGLRenderer({ antialias: true });
+renderer.setSize(window.innerWidth, window.innerHeight);
+renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+document.body.appendChild(renderer.domElement);
 
-  <script>
-    const viewer = document.getElementById("viewer");
-    const arBtn = document.getElementById("arBtn");
-    const send = document.getElementById("send");
-    const input = document.getElementById("input");
-    const status = document.getElementById("status");
-    const valuePicker = document.getElementById("valuePicker");
-    const selectedLabel = document.getElementById("selectedLabel");
+const controls = new OrbitControls(camera, renderer.domElement);
+controls.enableDamping = true;
+controls.target.set(0, 1.2, 0);
 
-    let selectedValue = "";
+scene.add(new THREE.AmbientLight(0xffffff, 0.85));
+const light = new THREE.DirectionalLight(0xffffff, 1.05);
+light.position.set(5, 10, 7);
+scene.add(light);
 
-    valuePicker.addEventListener("click", (e)=>{
-      const btn = e.target.closest(".value-btn");
-      if(!btn) return;
+// -------------------- DATA --------------------
+const STORAGE_KEY = "value-space-thoughts-v2";
 
-      selectedValue = btn.dataset.value;
+const values = [
+  {
+    id: "care",
+    label: "Care",
+    quotes: [
+      "The bowling alley gave people somewhere to go.",
+      "There should be more affordable food places here.",
+      "Fireworks should not be going off in the woodland.",
+      "We need more places for young people to go."
+    ]
+  },
+  {
+    id: "neglect",
+    label: "Neglect",
+    quotes: [
+      "The cinema used to be there.",
+      "The swimming pool should be opened properly.",
+      "They told us the buildings would not go that high.",
+      "The high-rises are too much now."
+    ]
+  },
+  {
+    id: "greed",
+    label: "Greed",
+    quotes: [
+      "It is turning into a concrete jungle.",
+      "They are taking away our hidden gem.",
+      "Some businesses here are too expensive for local people.",
+      "The sustainability is an excuse to build more."
+    ]
+  },
+  {
+    id: "belonging",
+    label: "Belonging",
+    quotes: [
+      "Young people need their own spaces.",
+      "The bowling alley gave people a good place to go.",
+      "It feels good now because it is quiet.",
+      "The trees in the area has been taken over."
+    ]
+  },
+  {
+    id: "trust",
+    label: "Trust",
+    quotes: [
+      "What are you doing here and why?",
+      "They told us the buildings would not go that high.",
+      "Fireworks should not be going off in the woodland.",
+      "It feels good now because it is quiet, but I do not know what it will become."
+    ]
+  },
+  {
+    id: "efficiency",
+    label: "Efficiency",
+    quotes: [
+      "The market was so small and rubbish.",
+      "The swimming pool should be fixed properly.",
+      "There needs to be more indoor places to use in winter.",
+      "There should be more affordable food places here."
+    ]
+  }
+];
 
-      document.querySelectorAll(".value-btn").forEach(b=>{
-        b.classList.remove("active");
-      });
+// -------------------- HELPERS --------------------
+function getThoughts() {
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || "[]");
+  } catch {
+    return [];
+  }
+}
 
-      btn.classList.add("active");
+function saveThoughts(data) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+}
 
-      selectedLabel.textContent = "Selected value: " + selectedValue;
-      status.textContent = "";
+function setStatus(text) {
+  document.getElementById("status").textContent = text;
+}
+
+function makeTextTexture(text, {
+  width = 1024,
+  height = 256,
+  font = "bold 34px Arial",
+  color = "#ffffff",
+  bg = "rgba(0,0,0,0)"
+} = {}) {
+  const canvas = document.createElement("canvas");
+  canvas.width = width;
+  canvas.height = height;
+  const ctx = canvas.getContext("2d");
+
+  ctx.fillStyle = bg;
+  ctx.fillRect(0, 0, width, height);
+
+  ctx.fillStyle = color;
+  ctx.font = font;
+  ctx.textAlign = "center";
+  ctx.textBaseline = "middle";
+
+  const wrapped = wrapText(ctx, text, width * 0.8);
+  const lineHeight = 40;
+  const startY = (height - (wrapped.length - 1) * lineHeight) / 2;
+
+  wrapped.forEach((line, i) => {
+    ctx.fillText(line, width / 2, startY + i * lineHeight);
+  });
+
+  const texture = new THREE.CanvasTexture(canvas);
+  texture.needsUpdate = true;
+  return texture;
+}
+
+function wrapText(ctx, text, maxWidth) {
+  const words = text.split(" ");
+  const lines = [];
+  let line = "";
+
+  for (let i = 0; i < words.length; i++) {
+    const testLine = line ? line + " " + words[i] : words[i];
+    const metrics = ctx.measureText(testLine);
+    if (metrics.width > maxWidth && line) {
+      lines.push(line);
+      line = words[i];
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) lines.push(line);
+  return lines;
+}
+
+// -------------------- GROUPS --------------------
+const group = new THREE.Group();
+scene.add(group);
+
+const planes = [];
+const planeMap = new Map();
+let selectedPlane = null;
+
+// -------------------- BUILD VALUE PLANES --------------------
+values.forEach((value, i) => {
+  const angle = (i / values.length) * Math.PI * 2;
+
+  const planeGeo = new THREE.PlaneGeometry(2.3, 3.6);
+  const planeMat = new THREE.MeshStandardMaterial({
+    color: 0xcccccc,
+    transparent: true,
+    opacity: 0.42,
+    side: THREE.DoubleSide
+  });
+
+  const plane = new THREE.Mesh(planeGeo, planeMat);
+  plane.position.set(Math.cos(angle) * 2.8, 1.1, Math.sin(angle) * 2.8);
+  plane.rotation.y = -angle + Math.PI / 2;
+  plane.userData.valueId = value.id;
+  plane.userData.label = value.label;
+  plane.userData.baseOpacity = 0.42;
+
+  group.add(plane);
+  planes.push(plane);
+  planeMap.set(value.id, plane);
+
+  // Title
+  const titleTex = makeTextTexture(value.label, {
+    width: 800,
+    height: 180,
+    font: "bold 58px Arial",
+    color: "#111111"
+  });
+
+  const title = new THREE.Mesh(
+    new THREE.PlaneGeometry(1.6, 0.42),
+    new THREE.MeshBasicMaterial({ map: titleTex, transparent: true })
+  );
+
+  title.position.copy(plane.position);
+  title.position.y += 1.35;
+  title.rotation.y = plane.rotation.y;
+  group.add(title);
+
+  // Quote nodes on plane
+  value.quotes.forEach((quote, qi) => {
+    const tex = makeTextTexture(quote, {
+      width: 900,
+      height: 220,
+      font: "bold 28px Arial",
+      color: "#00ffff"
     });
 
-    arBtn.onclick = async ()=>{
-      if(viewer.activateAR) await viewer.activateAR();
-    };
+    const quoteNode = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.35, 0.42),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+    );
 
-    send.onclick = async ()=>{
-      const text = input.value.trim();
+    quoteNode.position.copy(plane.position);
 
-      if(!selectedValue){
-        status.textContent = "Choose a value";
-        return;
-      }
+    const offsets = [
+      [-0.45, 0.65],
+      [ 0.45, 0.25],
+      [-0.45,-0.20],
+      [ 0.45,-0.65]
+    ];
+    const [xOff, yOff] = offsets[qi % offsets.length];
 
-      if(!text){
-        status.textContent = "Write something";
-        return;
-      }
+    // local offset rotated with plane
+    const local = new THREE.Vector3(xOff, yOff, 0.08);
+    local.applyAxisAngle(new THREE.Vector3(0,1,0), plane.rotation.y);
 
-      try{
-        const formData = new FormData();
-        formData.append("message", `[${selectedValue}] ${text}`);
+    quoteNode.position.add(local);
+    quoteNode.rotation.y = plane.rotation.y;
+    quoteNode.userData.isQuote = true;
+    quoteNode.userData.quote = quote;
+    quoteNode.userData.valueLabel = value.label;
 
-        await fetch("https://formspree.io/f/xwvwbgrg", {
-          method:"POST",
-          body:formData,
-          headers:{"Accept":"application/json"}
-        });
+    group.add(quoteNode);
+  });
+});
 
-        status.textContent = "Sent";
-      }catch{
-        status.textContent = "Error sending";
-      }
+// -------------------- USER THOUGHTS --------------------
+function rebuildThoughts() {
+  const existing = group.children.filter(obj => obj.userData.isThought);
+  existing.forEach(obj => group.remove(obj));
 
-      input.value = "";
-    };
-  </script>
+  const thoughts = getThoughts();
+
+  thoughts.forEach((item, idx) => {
+    const plane = planeMap.get(item.value);
+    if (!plane) return;
+
+    const tex = makeTextTexture(item.text, {
+      width: 900,
+      height: 220,
+      font: "bold 28px Arial",
+      color: "#00ffff"
+    });
+
+    const node = new THREE.Mesh(
+      new THREE.PlaneGeometry(1.25, 0.4),
+      new THREE.MeshBasicMaterial({ map: tex, transparent: true })
+    );
+
+    node.position.copy(plane.position);
+
+    const stackIndex = thoughts
+      .filter(t => t.value === item.value)
+      .findIndex(t => t.createdAt === item.createdAt && t.text === item.text);
+
+    const local = new THREE.Vector3(
+      (stackIndex % 2 === 0 ? -0.38 : 0.38),
+      -1.0 - stackIndex * 0.42,
+      0.14
+    );
+    local.applyAxisAngle(new THREE.Vector3(0,1,0), plane.rotation.y);
+
+    node.position.add(local);
+    node.rotation.y = plane.rotation.y;
+    node.userData.isThought = true;
+    node.userData.text = item.text;
+    node.userData.valueLabel = plane.userData.label;
+
+    group.add(node);
+  });
+}
+
+rebuildThoughts();
+
+// -------------------- INTERACTION --------------------
+const raycaster = new THREE.Raycaster();
+const mouse = new THREE.Vector2();
+
+window.addEventListener("click", (e) => {
+  // avoid clicks on UI
+  if (e.target.tagName === "BUTTON" || e.target.tagName === "INPUT") return;
+
+  mouse.x = (e.clientX / window.innerWidth) * 2 - 1;
+  mouse.y = -(e.clientY / window.innerHeight) * 2 + 1;
+
+  raycaster.setFromCamera(mouse, camera);
+
+  // planes first
+  const planeHits = raycaster.intersectObjects(planes);
+  if (planeHits.length > 0) {
+    selectedPlane = planeHits[0].object;
+    planes.forEach(p => p.material.opacity = p.userData.baseOpacity);
+    selectedPlane.material.opacity = 0.9;
+    setStatus(`Selected ${selectedPlane.userData.label}`);
+    return;
+  }
+
+  // quote / thought hits
+  const infoTargets = group.children.filter(obj => obj.userData.isQuote || obj.userData.isThought);
+  const infoHits = raycaster.intersectObjects(infoTargets);
+
+  if (infoHits.length > 0) {
+    const hit = infoHits[0].object;
+    if (hit.userData.isQuote) {
+      document.getElementById("detailTitle").textContent = hit.userData.valueLabel;
+      document.getElementById("detailText").textContent = hit.userData.quote;
+      document.getElementById("detailMeta").textContent = "Quote";
+    } else if (hit.userData.isThought) {
+      document.getElementById("detailTitle").textContent = hit.userData.valueLabel;
+      document.getElementById("detailText").textContent = hit.userData.text;
+      document.getElementById("detailMeta").textContent = "Added thought";
+    }
+  }
+});
+
+// -------------------- UI --------------------
+document.getElementById("send").onclick = async () => {
+  const text = document.getElementById("input").value.trim();
+
+  if (!selectedPlane) {
+    setStatus("Choose a value plane");
+    return;
+  }
+
+  if (!text) {
+    setStatus("Write something");
+    return;
+  }
+
+  const thoughts = getThoughts();
+  thoughts.push({
+    value: selectedPlane.userData.valueId,
+    text,
+    createdAt: new Date().toISOString()
+  });
+  saveThoughts(thoughts);
+  rebuildThoughts();
+
+  try {
+    const formData = new FormData();
+    formData.append("message", `[${selectedPlane.userData.valueId}] ${text}`);
+
+    await fetch("https://formspree.io/f/xwvwbgrg", {
+      method: "POST",
+      body: formData,
+      headers: { "Accept": "application/json" }
+    });
+
+    setStatus("Sent");
+  } catch {
+    setStatus("Saved locally");
+  }
+
+  document.getElementById("input").value = "";
+};
+
+// -------------------- DETAIL PANEL --------------------
+const detail = document.createElement("div");
+detail.style.position = "fixed";
+detail.style.right = "16px";
+detail.style.top = "16px";
+detail.style.width = "min(360px, calc(100vw - 32px))";
+detail.style.background = "rgba(255,255,255,0.92)";
+detail.style.padding = "12px 14px";
+detail.style.borderRadius = "14px";
+detail.style.boxShadow = "0 8px 24px rgba(0,0,0,0.12)";
+detail.style.zIndex = "10";
+detail.innerHTML = `
+  <h2 id="detailTitle" style="margin:0 0 6px;font-size:20px;">Value Lab</h2>
+  <p id="detailText" style="margin:0;font-size:14px;line-height:1.45;color:#222;">Click a quote node in the scene.</p>
+  <div id="detailMeta" style="margin-top:8px;font-size:12px;color:#666;">Quote / thought details</div>
+`;
+document.body.appendChild(detail);
+
+// -------------------- ANIMATE --------------------
+function animate() {
+  requestAnimationFrame(animate);
+  group.rotation.y += 0.002;
+  controls.update();
+  renderer.render(scene, camera);
+}
+animate();
+
+// -------------------- RESIZE --------------------
+window.addEventListener("resize", () => {
+  camera.aspect = window.innerWidth/window.innerHeight;
+  camera.updateProjectionMatrix();
+  renderer.setSize(window.innerWidth, window.innerHeight);
+});
+</script>
 
 </body>
 </html>
