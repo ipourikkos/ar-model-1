@@ -3,121 +3,86 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Maps of Value AR</title>
-  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.1.0/model-viewer.min.js"></script>
+  <title>Maps of Value | Bubble Model</title>
+  <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
   <style>
-    :root {
-      --bg: #ecebea;
-      --panel: rgba(255,255,255,0.78);
-      --border: rgba(0,0,0,0.06);
-      --text: #25282b;
-      --muted: #6b7075;
-      --commons: #7e9d9a;
-      --state: #a89354;
-      --market: #6d4b53;
+    :root{
+      --bg:#f6f5f2;
+      --ink:#171717;
+      --muted:#5f6368;
+      --panel:rgba(255,255,255,.86);
+      --line:rgba(0,0,0,.08);
+      --shadow:0 16px 40px rgba(0,0,0,.12);
     }
-    * { box-sizing: border-box; }
-    html, body { margin: 0; height: 100%; background: var(--bg); font-family: Arial, Helvetica, sans-serif; color: var(--text); }
-    body { overflow: hidden; }
-    model-viewer {
-      width: 100vw;
-      height: 100vh;
-      background: radial-gradient(circle at 50% 35%, #f5f4f3 0%, #ecebea 55%, #e6e4e2 100%);
-      --poster-color: transparent;
-    }
-    .panel {
-      position: fixed;
-      background: var(--panel);
-      backdrop-filter: blur(12px);
-      border: 1px solid var(--border);
-      border-radius: 18px;
-      box-shadow: 0 12px 34px rgba(0,0,0,0.10);
-      z-index: 2;
-    }
-    .intro {
-      top: 16px;
-      left: 16px;
-      width: min(410px, calc(100vw - 32px));
-      padding: 14px 16px;
-    }
-    .legend {
-      top: 16px;
-      right: 16px;
-      width: 156px;
-      padding: 12px 14px;
-    }
-    .footer {
-      left: 16px;
-      bottom: 16px;
-      width: min(520px, calc(100vw - 32px));
-      padding: 10px 14px;
-      font-size: 12px;
-      color: var(--muted);
-    }
-    .intro .eyebrow, .legend .eyebrow { font-size: 12px; letter-spacing: 0.14em; text-transform: uppercase; color: #8a8f95; margin-bottom: 4px; }
-    h1 { margin: 0 0 8px; font-size: 18px; }
-    p { margin: 0; line-height: 1.45; color: var(--muted); }
-    .legend-row { display: flex; align-items: center; gap: 10px; margin-top: 8px; font-size: 14px; }
-    .dot { width: 12px; height: 12px; border-radius: 999px; flex: 0 0 12px; }
-    .hint {
-      position: fixed;
-      right: 16px;
-      bottom: 16px;
-      width: min(280px, calc(100vw - 32px));
-      padding: 12px 14px;
-      font-size: 12px;
-      line-height: 1.45;
-      color: var(--muted);
-    }
-    .ar-chip {
-      display: inline-block;
-      margin-top: 10px;
-      padding: 7px 10px;
-      border-radius: 999px;
-      border: 1px solid rgba(0,0,0,0.08);
-      font-size: 12px;
-      color: var(--text);
-      background: rgba(255,255,255,0.86);
-    }
-    @media (max-width: 700px) {
-      .intro { width: calc(100vw - 24px); top: 12px; left: 12px; }
-      .legend { top: auto; right: 12px; bottom: 110px; width: 150px; }
-      .footer { left: 12px; bottom: 12px; width: calc(100vw - 24px); }
-      .hint { display: none; }
+    *{box-sizing:border-box}
+    html,body{margin:0;width:100%;height:100%;background:var(--bg);font-family:Arial,Helvetica,sans-serif;color:var(--ink)}
+    model-viewer{width:100vw;height:100vh;background:radial-gradient(circle at 50% 35%, #ffffff 0%, #f6f5f2 58%, #eeece7 100%)}
+    .ui{position:fixed;inset:0;pointer-events:none}
+    .card,.note,.legend{pointer-events:auto;background:var(--panel);backdrop-filter:blur(12px);border:1px solid var(--line);box-shadow:var(--shadow);border-radius:20px}
+    .card{position:absolute;left:16px;top:16px;max-width:460px;padding:16px 18px}
+    .eyebrow{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin-bottom:8px}
+    h1{font-size:24px;line-height:1.05;margin:0 0 10px}
+    p{margin:0;font-size:13px;line-height:1.55;color:var(--muted)}
+    .legend{position:absolute;right:16px;top:16px;padding:12px 14px;display:grid;gap:8px;min-width:180px}
+    .legend strong{font-size:12px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+    .chip{display:flex;align-items:center;gap:10px;font-size:13px}
+    .dot{width:14px;height:14px;border-radius:50%;border:1px solid rgba(0,0,0,.06)}
+    .note{position:absolute;left:16px;bottom:16px;max-width:520px;padding:12px 14px;font-size:12px;line-height:1.5;color:var(--muted)}
+    #ar-prompt{position:absolute;right:16px;bottom:16px;max-width:300px;padding:12px 14px;font-size:12px;line-height:1.5;color:var(--muted)}
+    @media (max-width:760px){
+      .legend{top:auto;right:16px;bottom:110px}
+      .card{max-width:calc(100vw - 32px)}
+      h1{font-size:20px}
     }
   </style>
 </head>
 <body>
-  <div class="panel intro">
-    <div class="eyebrow">3D Reconstruction</div>
-    <h1>Maps of Value</h1>
-    <p>This version uses your <strong>model.glb</strong> as the single source file. On desktop it opens as a normal 3D viewer. On iPhone, tapping the AR button should hand off to Apple Quick Look through model-viewer’s iOS flow.</p>
-    <div class="ar-chip">Use the AR button on supported devices</div>
-  </div>
+  <model-viewer
+    src="model.glb"
+    alt="Six pastel transparent value bubbles with black titles and quotes inside"
+    ar
+    ar-modes="webxr scene-viewer quick-look"
+    ar-scale="fixed"
+    camera-controls
+    touch-action="pan-y"
+    shadow-intensity="0.85"
+    exposure="1.05"
+    environment-image="neutral"
+    auto-rotate
+    auto-rotate-delay="0"
+    rotation-per-second="8deg"
+    min-camera-orbit="auto auto 5m"
+    max-camera-orbit="auto auto 12m"
+    min-field-of-view="22deg"
+    max-field-of-view="48deg"
+    interpolation-decay="120"
+    camera-orbit="0deg 75deg 7m"
+    poster="data:image/gif;base64,R0lGODlhAQABAAAAACw="
+  >
+    <button slot="ar-button" style="background:#ffffff;border:1px solid rgba(0,0,0,.08);border-radius:999px;padding:0 18px;height:46px;font-weight:700;color:#171717;box-shadow:0 10px 30px rgba(0,0,0,.12);cursor:pointer;">
+      View in AR
+    </button>
+  </model-viewer>
 
-  <div class="panel legend">
-    <div class="eyebrow">Colourway</div>
-    <div class="legend-row"><span class="dot" style="background: var(--commons)"></span>Commons</div>
-    <div class="legend-row"><span class="dot" style="background: var(--state)"></span>State</div>
-    <div class="legend-row"><span class="dot" style="background: var(--market)"></span>Market</div>
-  </div>
+  <div class="ui">
+    <section class="card">
+      <div class="eyebrow">Simplified model</div>
+      <h1>Maps of Value</h1>
+      <p>Six transparent pastel bubbles in a row. Each bubble holds one value title and its quotes in black for maximum clarity. Use one finger to rotate, two fingers to zoom, and the AR button to place it in real space.</p>
+    </section>
 
-  <div class="panel footer">
-    Replace the old homepage file with this one as <strong>index.html</strong>, and keep your 3D file beside it in the repo root as <strong>model.glb</strong>.
-  </div>
+    <aside class="legend">
+      <strong>Value colours</strong>
+      <div class="chip"><span class="dot" style="background:#CFEFE3"></span><span>Care</span></div>
+      <div class="chip"><span class="dot" style="background:#F7DCC8"></span><span>Belonging</span></div>
+      <div class="chip"><span class="dot" style="background:#E6D9F7"></span><span>Neglect</span></div>
+      <div class="chip"><span class="dot" style="background:#F5D1D8"></span><span>Greed</span></div>
+      <div class="chip"><span class="dot" style="background:#D6EAF8"></span><span>Trust</span></div>
+      <div class="chip"><span class="dot" style="background:#F9EDC9"></span><span>Efficiency</span></div>
+    </aside>
 
-  <div class="panel hint">
-    iPhone AR is not WebXR placement here. The AR button passes the GLB through the iOS Quick Look path handled by model-viewer.
+    <div class="note">The page is set up for <code>model.glb</code> in the same GitHub folder as <code>index.html</code>. The AR scale is fixed so it should appear much smaller and easier to place than before.</div>
+    <div class="note" id="ar-prompt">If the model still feels too large in AR, change the model scale in your 3D file rather than pinch scaling. This version has already been rebuilt as a lighter, simpler asset for easier placement.</div>
   </div>
-
- <model-viewer
-  src="model.glb"
-  ar
-  ar-modes="webxr scene-viewer quick-look"
-  camera-controls
-  auto-rotate
-  scale="0.1 0.1 0.1"
-  ar-scale="fixed">
-</model-viewer>
 </body>
 </html>
