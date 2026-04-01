@@ -10,12 +10,19 @@
   <style>
     :root {
       --bg: #f3f3f3;
-      --panel: rgba(255,255,255,0.94);
+      --panel: rgba(255,255,255,0.95);
       --line: rgba(0,0,0,0.08);
       --text: #111;
       --muted: #666;
       --shadow: 0 10px 30px rgba(0,0,0,0.10);
       --radius: 16px;
+
+      --care: #4f7c68;
+      --belonging: #5f7d6d;
+      --neglect: #9b7a32;
+      --greed: #6e3a3a;
+      --trust: #7b6332;
+      --efficiency: #8a7a3a;
     }
 
     * { box-sizing: border-box; }
@@ -31,14 +38,14 @@
 
     model-viewer {
       width: 100%;
-      height: 70vh;
+      height: 68vh;
       min-height: 420px;
       background: #fff;
       --ar-button-display: none;
     }
 
     .wrap {
-      width: min(1180px, calc(100% - 24px));
+      width: min(1200px, calc(100% - 24px));
       margin: 0 auto;
       padding: 12px 0 32px;
     }
@@ -80,30 +87,16 @@
       padding: 12px;
     }
 
-    .ar-btn, .send-btn, .chip {
+    .ar-btn, .send-btn {
       appearance: none;
       border: none;
       border-radius: 999px;
       padding: 12px 16px;
       font-size: 14px;
       cursor: pointer;
-    }
-
-    .ar-btn, .send-btn {
       background: #111;
       color: #fff;
       font-weight: 700;
-    }
-
-    .chip {
-      background: rgba(0,0,0,0.06);
-      color: #111;
-      border: 1px solid var(--line);
-    }
-
-    .chip.active {
-      background: #111;
-      color: #fff;
     }
 
     .form-card {
@@ -112,11 +105,13 @@
 
     .form-grid {
       display: grid;
-      grid-template-columns: 1fr auto;
+      grid-template-columns: 1.1fr 0.9fr auto auto;
       gap: 8px;
+      align-items: stretch;
     }
 
-    .form-grid input {
+    .form-grid input,
+    .form-grid select {
       width: 100%;
       border: 1px solid var(--line);
       border-radius: 12px;
@@ -143,76 +138,86 @@
       font-size: 18px;
     }
 
-    .cards {
+    .value-grid {
       display: grid;
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-      gap: 10px;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 12px;
     }
 
-    .card {
+    .value-card {
       border: 1px solid var(--line);
-      border-radius: 14px;
-      background: rgba(255,255,255,0.86);
-      padding: 12px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.88);
+      overflow: hidden;
     }
 
-    .card h3 {
-      margin: 0 0 8px;
+    .value-head {
+      padding: 12px 14px;
+      color: white;
+      font-weight: 700;
       font-size: 15px;
     }
 
-    .card p {
-      margin: 0;
-      font-size: 13px;
-      line-height: 1.45;
-      color: #222;
-      white-space: pre-wrap;
+    .value-body {
+      padding: 14px;
     }
 
-    .list {
+    .subheading {
+      margin: 0 0 8px;
+      font-size: 13px;
+      color: var(--muted);
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+    }
+
+    .quote-list, .node-list {
       display: grid;
-      gap: 10px;
+      gap: 8px;
     }
 
-    .item {
+    .quote, .node {
       border: 1px solid var(--line);
-      border-radius: 14px;
-      padding: 12px;
-      background: rgba(255,255,255,0.86);
-    }
-
-    .item strong {
-      display: block;
-      margin-bottom: 6px;
-      font-size: 14px;
-    }
-
-    .item p {
-      margin: 0;
+      border-radius: 12px;
+      padding: 10px 12px;
+      background: rgba(255,255,255,0.92);
       font-size: 13px;
       line-height: 1.45;
       color: #222;
-      white-space: pre-wrap;
     }
 
-    .meta {
+    .node-meta {
+      display: block;
       margin-top: 6px;
-      font-size: 12px;
+      font-size: 11px;
       color: var(--muted);
     }
 
+    .empty {
+      font-size: 13px;
+      color: var(--muted);
+      padding: 6px 0;
+    }
+
+    .clear-btn {
+      appearance: none;
+      border: 1px solid var(--line);
+      background: white;
+      color: #111;
+      border-radius: 999px;
+      padding: 10px 14px;
+      font-size: 13px;
+      cursor: pointer;
+    }
+
     @media (max-width: 900px) {
-      .cards {
-        grid-template-columns: 1fr 1fr;
+      .value-grid {
+        grid-template-columns: 1fr;
       }
     }
 
-    @media (max-width: 640px) {
+    @media (max-width: 700px) {
       .form-grid {
-        grid-template-columns: 1fr;
-      }
-
-      .cards {
         grid-template-columns: 1fr;
       }
 
@@ -243,57 +248,181 @@
     <div class="top">
       <div class="panel header">
         <h1>Value Lab</h1>
-        <p>AR model, value maps, and all recorded engagements that produced them.</p>
+        <p>Explore the model in AR and add new nodes to the value maps by choosing a category and leaving a comment.</p>
       </div>
 
       <div class="panel controls">
         <button class="ar-btn" id="arButton" type="button">View in AR</button>
-        <button class="chip active" type="button" data-filter="all">All</button>
-        <button class="chip" type="button" data-filter="care">Care</button>
-        <button class="chip" type="button" data-filter="belonging">Belonging</button>
-        <button class="chip" type="button" data-filter="neglect">Neglect</button>
-        <button class="chip" type="button" data-filter="greed">Greed</button>
-        <button class="chip" type="button" data-filter="trust">Trust</button>
-        <button class="chip" type="button" data-filter="efficiency">Efficiency</button>
-        <button class="chip" type="button" data-filter="engagement">Engagement</button>
-        <button class="chip" type="button" data-filter="memory">Memory</button>
+        <button class="clear-btn" id="clearNodesButton" type="button">Clear Added Nodes</button>
       </div>
 
       <div class="panel form-card">
-        <form id="feedbackForm" class="form-grid">
+        <form id="nodeForm" class="form-grid">
           <input
             type="text"
-            id="messageInput"
+            id="nodeInput"
             name="message"
-            placeholder="Leave a note..."
+            placeholder="Add a new node or comment..."
             required
           />
-          <button class="send-btn" type="submit" id="sendButton">Send</button>
+          <select id="valueSelect" name="value" required>
+            <option value="care">Care</option>
+            <option value="belonging">Belonging</option>
+            <option value="neglect">Neglect</option>
+            <option value="greed">Greed</option>
+            <option value="trust">Trust</option>
+            <option value="efficiency">Efficiency</option>
+          </select>
+          <button class="send-btn" type="submit" id="addNodeButton">Add Node</button>
+          <button class="send-btn" type="button" id="sendFormspreeButton">Send</button>
         </form>
         <div class="status" id="statusMessage"></div>
       </div>
     </div>
 
     <div class="panel section">
-      <h2>Value Maps</h2>
-      <div class="cards" id="valueMapCards"></div>
-    </div>
-
-    <div class="panel section">
-      <h2>All Engagements</h2>
-      <div class="list" id="engagementList"></div>
+      <h2>Maps of Value</h2>
+      <div class="value-grid" id="valueGrid"></div>
     </div>
   </div>
 
   <script>
     const viewer = document.getElementById('viewer');
     const arButton = document.getElementById('arButton');
-    const valueMapCards = document.getElementById('valueMapCards');
-    const engagementList = document.getElementById('engagementList');
-    const chips = [...document.querySelectorAll('.chip')];
-    const feedbackForm = document.getElementById('feedbackForm');
-    const sendButton = document.getElementById('sendButton');
+    const nodeForm = document.getElementById('nodeForm');
+    const nodeInput = document.getElementById('nodeInput');
+    const valueSelect = document.getElementById('valueSelect');
+    const addNodeButton = document.getElementById('addNodeButton');
+    const sendFormspreeButton = document.getElementById('sendFormspreeButton');
+    const clearNodesButton = document.getElementById('clearNodesButton');
     const statusMessage = document.getElementById('statusMessage');
+    const valueGrid = document.getElementById('valueGrid');
+
+    const STORAGE_KEY = 'value-lab-user-nodes-v1';
+
+    const valueMaps = [
+      {
+        id: 'care',
+        title: 'Care',
+        color: 'var(--care)',
+        quotes: [
+          'There should be more affordable food places here.',
+          'Fireworks should not be going off in the woodland.',
+          'We need more places for young people to go.'
+        ]
+      },
+      {
+        id: 'belonging',
+        title: 'Belonging',
+        color: 'var(--belonging)',
+        quotes: [
+          'The bowling alley gave people a good place to go.',
+          'The trees and the area has been taken over.',
+          'Young people need their own spaces.'
+        ]
+      },
+      {
+        id: 'neglect',
+        title: 'Neglect',
+        color: 'var(--neglect)',
+        quotes: [
+          'The cinema used to bring us all together.',
+          'They told us the buildings would not go that high.',
+          'The swimming pool should be opened properly.'
+        ]
+      },
+      {
+        id: 'greed',
+        title: 'Greed',
+        color: 'var(--greed)',
+        quotes: [
+          'The high-rises has got too much now.',
+          'It is turning into a concrete jungle.',
+          'Some businesses here are too expensive for local people.'
+        ]
+      },
+      {
+        id: 'trust',
+        title: 'Trust',
+        color: 'var(--trust)',
+        quotes: [
+          'Fireworks should not be going off in the woodland.',
+          'They told us the buildings would not go that high.',
+          'What are you doing here and why?'
+        ]
+      },
+      {
+        id: 'efficiency',
+        title: 'Efficiency',
+        color: 'var(--efficiency)',
+        quotes: [
+          'There needs to be more indoor places to use in winter.',
+          'There should be more affordable food places here.',
+          'The swimming pool should be fixed properly.'
+        ]
+      }
+    ];
+
+    function showStatus(text) {
+      statusMessage.style.display = 'block';
+      statusMessage.textContent = text;
+      setTimeout(() => {
+        statusMessage.style.display = 'none';
+      }, 3000);
+    }
+
+    function getUserNodes() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY)) || [];
+      } catch {
+        return [];
+      }
+    }
+
+    function saveUserNodes(nodes) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(nodes));
+    }
+
+    function formatDate(dateString) {
+      const date = new Date(dateString);
+      return date.toLocaleString();
+    }
+
+    function renderValueMaps() {
+      const userNodes = getUserNodes();
+
+      valueGrid.innerHTML = valueMaps.map(value => {
+        const nodesForValue = userNodes.filter(node => node.value === value.id);
+
+        return `
+          <div class="value-card">
+            <div class="value-head" style="background:${value.color}">
+              ${value.title}
+            </div>
+            <div class="value-body">
+              <div class="subheading">Chosen Quotes</div>
+              <div class="quote-list">
+                ${value.quotes.map(quote => `<div class="quote">${quote}</div>`).join('')}
+              </div>
+
+              <div class="subheading" style="margin-top:14px;">Added Nodes</div>
+              <div class="node-list">
+                ${
+                  nodesForValue.length
+                    ? nodesForValue.map(node => `
+                      <div class="node">
+                        ${node.text}
+                        <span class="node-meta">Added ${formatDate(node.createdAt)}</span>
+                      </div>
+                    `).join('')
+                    : `<div class="empty">No added nodes yet.</div>`
+                }
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
 
     arButton.addEventListener('click', async () => {
       try {
@@ -305,28 +434,50 @@
       }
     });
 
-    function showStatus(text) {
-      statusMessage.style.display = 'block';
-      statusMessage.textContent = text;
-      setTimeout(() => {
-        statusMessage.style.display = 'none';
-      }, 3000);
-    }
-
-    feedbackForm.addEventListener('submit', async (e) => {
+    nodeForm.addEventListener('submit', (e) => {
       e.preventDefault();
-      sendButton.disabled = true;
-      sendButton.textContent = 'Sending...';
+
+      const text = nodeInput.value.trim();
+      const value = valueSelect.value;
+
+      if (!text) return;
+
+      const nodes = getUserNodes();
+      nodes.push({
+        text,
+        value,
+        createdAt: new Date().toISOString()
+      });
+
+      saveUserNodes(nodes);
+      nodeInput.value = '';
+      renderValueMaps();
+      showStatus('Node added.');
+    });
+
+    sendFormspreeButton.addEventListener('click', async () => {
+      const text = nodeInput.value.trim();
+      const value = valueSelect.value;
+
+      if (!text) {
+        showStatus('Write a comment first.');
+        return;
+      }
+
+      sendFormspreeButton.disabled = true;
+      sendFormspreeButton.textContent = 'Sending...';
+
+      const formData = new FormData();
+      formData.append('message', `[${value.toUpperCase()}] ${text}`);
 
       try {
         const response = await fetch('https://formspree.io/f/xwvwbgrg', {
           method: 'POST',
-          body: new FormData(feedbackForm),
+          body: formData,
           headers: { 'Accept': 'application/json' }
         });
 
         if (response.ok) {
-          feedbackForm.reset();
           showStatus('Message sent.');
         } else {
           showStatus('Could not send message.');
@@ -335,489 +486,17 @@
         showStatus('Connection problem.');
       }
 
-      sendButton.disabled = false;
-      sendButton.textContent = 'Send';
+      sendFormspreeButton.disabled = false;
+      sendFormspreeButton.textContent = 'Send';
     });
 
-    const valueMaps = [
-      {
-        id: 'care',
-        title: 'Care',
-        quotes: [
-          'There should be more affordable food places here.',
-          'Fireworks should not be going off in the woodland.',
-          'We need more places for young people to go.'
-        ]
-      },
-      {
-        id: 'belonging',
-        title: 'Belonging',
-        quotes: [
-          'The bowling alley gave people a good place to go.',
-          'The trees and the area has been taken over.',
-          'Young people need their own spaces.'
-        ]
-      },
-      {
-        id: 'neglect',
-        title: 'Neglect',
-        quotes: [
-          'The cinema used to bring us all together.',
-          'They told us the buildings would not go that high.',
-          'The swimming pool should be opened properly.'
-        ]
-      },
-      {
-        id: 'greed',
-        title: 'Greed',
-        quotes: [
-          'The high-rises has got too much now.',
-          'It is turning into a concrete jungle.',
-          'Some businesses here are too expensive for local people.'
-        ]
-      },
-      {
-        id: 'trust',
-        title: 'Trust',
-        quotes: [
-          'Fireworks should not be going off in the woodland.',
-          'They told us the buildings would not go that high.',
-          'What are you doing here and why?'
-        ]
-      },
-      {
-        id: 'efficiency',
-        title: 'Efficiency',
-        quotes: [
-          'There needs to be more indoor places to use in winter.',
-          'There should be more affordable food places here.',
-          'The swimming pool should be fixed properly.'
-        ]
-      }
-    ];
-
-    const engagements = [
-      {
-        value: 'engagement',
-        title: 'Workshop 1.1, Polaroid value exercise',
-        text: 'Children identified value through photographs of places and everyday objects in Rotherhithe. Dockland Settlement, Rotherhithe Station, and the library were treated as important because of routine, family use, and repeated activity. Everyday commercial objects and places also appeared without hesitation.',
-        meta: 'Nodes: crisp packet trash, estate building, public ashtray, Dockland Settlement cafe, library books, Canary Wharf view, Burger King, Time & Talents, Rotherhithe Station, Canada Water Dock.'
-      },
-      {
-        value: 'memory',
-        title: 'Workshop 1.1, quoted responses',
-        text: 'This are my favourite crisps. Reminds me of home. We love Burger King. My dad goes there everyday. I like the water. We dont know it. I dont like it. The buildings are cool. I go there with my parents. We eat here.',
-        meta: 'Photographic response set.'
-      },
-      {
-        value: 'engagement',
-        title: 'Workshop 1.2, Draw what you value',
-        text: 'Children drew what they value without visual cues. Home, school, park, railway, Surrey Docks Farm, library, River Thames, and friends appeared repeatedly, showing that daily routine and social attachment structure value.',
-        meta: 'Nodes: home, school, park, railway, Surrey Farm, library, nature, River Thames, friends, technology, piano, rainbows, Disneyland.'
-      },
-      {
-        value: 'memory',
-        title: 'Workshop 1.2, drawn responses',
-        text: 'Secret diary, drawing eyes, technology, my friends secret language, piano, my school. Crafting club, school, friends, rainbows. The railway, Tesco, my home. I want to go back to Disneyland. The park, my school, my home. The park, Surrey Farm. The railway, my home. The library, my school, nature, River Thames.',
-        meta: 'Drawing response set.'
-      },
-      {
-        value: 'engagement',
-        title: 'Workshop 1.3, Lego block map',
-        text: 'Children placed Lego blocks onto a printed map of Rotherhithe to mark where they feel value exists. Surrey Quays Shopping Centre had the highest concentration of blocks, followed by Dockland Settlement and their school. Nature and remembered leisure spaces also appeared strongly.',
-        meta: 'Nodes: Surrey Quays Shopping Centre, Dockland Settlement, Redriff Primary, Stave Hill, River, market, bowling, cinema, homes.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Art of Isolation Store',
-        text: 'General staff member at the Art of Isolation Store acted as intermediary in the artist’s absence. The store was visited during inactivity, and the encounter highlighted uncertainty around access and collaboration.',
-        meta: 'Shift: revisit when the space is active.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Bow Art Studios',
-        text: 'Bow Art Studios was encountered as a managed creative workspace with controlled access. A visit during working hours did not allow entry, which showed that engagement would need formal arrangement.',
-        meta: 'Shift: locate direct contact details before returning.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, The Hithe initial contact',
-        text: 'A staff member at The Hithe received a brief project introduction and contact exchange. The response suggested potential for more structured engagement.',
-        meta: 'Shift: await email response and prepare clearer supporting material.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Brunel Museum initial visit',
-        text: 'A Brunel Museum staff member acted as the first contact point during a private-booking period. Timing and institutional schedules were shown to shape access.',
-        meta: 'Shift: return on a weekend with a concise presentation.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Sands Films Studios',
-        text: 'Staff at Sands Films Studios, especially café staff, facilitated access to the Picture Archive through a concealed entrance. The archive appeared intimate, layered, and narratively rich.',
-        meta: 'Shift: begin direct correspondence with the archive team.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, London Bubble Theatre',
-        text: 'A visit during rehearsals limited access and prevented direct contact with staff. The lack of visible administrative interface restricted spontaneous engagement.',
-        meta: 'Shift: position as a possible future partner.'
-      },
-      {
-        value: 'care',
-        title: 'Site engagement, Time & Talents',
-        text: 'Helen Keenan, CEO of Time & Talents, discussed the organisation’s ongoing community work. The site appeared strongly aligned with the project and was understood as the most receptive environment encountered so far.',
-        meta: 'Shift: pursue continued dialogue and explore using the site as a future base.'
-      },
-      {
-        value: 'trust',
-        title: 'Site engagement, Brunel Museum with Letizia',
-        text: 'Letizia, front-of-house staff member at Brunel Museum, discussed whether the museum could support future engagement. The exchange showed how informal gatekeepers shape institutional trust and access.',
-        meta: 'Shift: museum could host engagement through the right contact and clearer proposal.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Peter Jones co-design meeting',
-        text: 'Peter Jones, long-term resident and cultural practitioner, walked through the neighbourhood, shared historical narratives, and discussed the mobile structure. He responded strongly to the map as prompt and suggested making the map rotate.',
-        meta: 'Shift: external feedback refined the structure and confirmed mapping as engagement prompt.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Peter Jones historical dialogue',
-        text: 'A second Peter Jones exchange focused on history, transformation, and emotional maps, showing how local knowledge can act as active methodological input rather than background context.',
-        meta: 'Shift: unlocked a valuable local collaborator.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, The Hithe with Elsa Kenningham',
-        text: 'Elsa Kenningham described The Hithe through its engagement-led development history and temporary urban strategies. The visit revealed structural limits of collaboration within meanwhile developments.',
-        meta: 'Shift: repositioned The Hithe as a reference case rather than a direct engagement site.'
-      },
-      {
-        value: 'belonging',
-        title: 'Site engagement, Deli Felice and local residents',
-        text: 'Deli Felice staff and local residents, including Kerry, entered an informal conversation about local history, community change, education, and gentrification. Everyday spaces emerged as grounded sites of local knowledge production.',
-        meta: 'Shift: recognised cafés and informal spaces as valuable sources of local knowledge.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Emily and Torange on Community Southwark structure',
-        text: 'Emily and Torange discussed how the project could evolve toward a bottom-up fund supporting small community organisations. The meeting clarified the complexity of organisational ecosystems and access to resources.',
-        meta: 'Shift: stronger focus on funding mechanisms and institutional power.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Emily on networks and events',
-        text: 'Emily outlined local community infrastructures and upcoming moments for participation, including the British Land drop-in at Corner Corner and a Community Southwark meeting.',
-        meta: 'Shift: broadened the project beyond a single site and toward network-based engagement.'
-      },
-      {
-        value: 'engagement',
-        title: 'Site engagement, Corner Corner follow-up visit',
-        text: 'A short-notice visit with Emily explored whether the mobile structure could be brought to the British Land drop-in. It was not possible at that moment, but staff advised following up directly.',
-        meta: 'Shift: recognised coordination as necessary for participation.'
-      },
-      {
-        value: 'care',
-        title: 'Site engagement, Dockland Settlement with Dannica',
-        text: 'Dannica discussed how engagements would run in practice within Dockland Settlement, including storing the mobile structure on site and using the foyer as the primary engagement area.',
-        meta: 'Shift: Dockland Settlement became the operational base.'
-      },
-      {
-        value: 'trust',
-        title: 'British Land drop-in, Corner Corner floor manager',
-        text: 'The floor manager explained that any participation in the drop-in would need official approval and legitimacy. The event space functioned as a controlled environment even while appearing public.',
-        meta: 'Shift: participation understood as structured and regulated.'
-      },
-      {
-        value: 'trust',
-        title: 'British Land drop-in, EQ Consulting representatives',
-        text: 'EQ Consulting described consultation sessions where only comments considered significant are escalated. The encounter revealed consultation as a structured forum for collecting input rather than a transparent mechanism for influence.',
-        meta: 'Shift: contextual insight into consultation processes.'
-      },
-      {
-        value: 'greed',
-        title: 'British Land drop-in, Freddy from British Land',
-        text: 'Freddy discussed British Land social value priorities, financial pressures, affordable housing cuts, rising construction costs, and delays. Redevelopment appeared as an intersection of economic risk, logistics, and social expectation.',
-        meta: 'Shift: stronger focus on the economic and institutional landscape underpinning redevelopment.'
-      },
-      {
-        value: 'engagement',
-        title: 'Community Southwark event, SET Social',
-        text: 'Participants from Community Southwark, CVS-linked council contacts, funding representatives, and community organisers joined a rotating discussion and workshop format about funding, free space, and youth needs. The event operated as a network of networks.',
-        meta: 'Shift: strengthened focus on organisational relationships and funding flows.'
-      },
-      {
-        value: 'engagement',
-        title: 'Workshop 2, What would you exchange in Rotherhithe?',
-        text: 'Participants were asked what they would add and remove from the area. The add-remove structure shifted discussion from abstract opinion to tangible trade-offs and collective reflection.',
-        meta: 'Nodes added: youth spaces, gathering spaces, community spaces, swimming pool, bowling, cinema, skate park, football pitch, indoor play, market, dentists, doctors, restaurants, affordable food stalls, trees, elderly spaces, horse stable, schools, arcade, sauna, ice bath, toy shop, playgrounds. Nodes removed: high-rise overkill, money-driven development, non-local venues, woodland neglect, abandoned Printworks, unaffordable spaces, traffic lights, fireworks in the woodlands, criminals approved by the law, newcomer focus.'
-      },
-      {
-        value: 'memory',
-        title: 'Workshop 2, Participant 01',
-        text: 'Added youth spaces, referenced closure of bingo, cinema, and bowling, and called for demolished buildings to be restored.',
-        meta: 'Insight: value framed through recovery and memory.'
-      },
-      {
-        value: 'memory',
-        title: 'Workshop 2, Participant 02',
-        text: 'Added the old church that used to be near Dockland Settlement and encouraged additions without removing anything.',
-        meta: 'Insight: nostalgia shapes perception of change.'
-      },
-      {
-        value: 'belonging',
-        title: 'Workshop 2, Participant 03',
-        text: 'Added bingo and suggested removing Printworks if it is not serving youth.',
-        meta: 'Insight: preference for active community use over symbolic presence.'
-      },
-      {
-        value: 'care',
-        title: 'Workshop 2, Participant 04',
-        text: 'Added horse-riding facilities and emphasised protecting Surrey Docks Farm.',
-        meta: 'Insight: ecological and recreational continuity.'
-      },
-      {
-        value: 'belonging',
-        title: 'Workshop 2, Participant 05',
-        text: 'Added community gathering spaces and suggested removing spaces that do not serve locals.',
-        meta: 'Insight: spatial value measured through inclusivity.'
-      },
-      {
-        value: 'care',
-        title: 'Workshop 2, Participant 06',
-        text: 'Added youth and elderly spaces and noted decline in woodland use and environmental quality.',
-        meta: 'Insight: ecological care and lived memory.'
-      },
-      {
-        value: 'neglect',
-        title: 'Workshop 2, Participant 07',
-        text: 'Added youth spaces and suggested removing excessive high-rise development.',
-        meta: 'Insight: building scale linked to perceived social decline.'
-      },
-      {
-        value: 'neglect',
-        title: 'Workshop 2, Participant 08',
-        text: 'Repeated the call for youth spaces and reduction of high-rise buildings.',
-        meta: 'Insight: strong consensus around these priorities.'
-      },
-      {
-        value: 'trust',
-        title: 'Workshop 2, Participant 09',
-        text: 'Added youth and elderly spaces and requested removal of high-rises, referencing earlier height promises.',
-        meta: 'Insight: mistrust shaped by perceived broken commitments.'
-      },
-      {
-        value: 'care',
-        title: 'Workshop 2, Participant 10',
-        text: 'Added gathering spaces and raised concerns about safety, schools, and policing.',
-        meta: 'Insight: redevelopment experienced through everyday systems.'
-      },
-      {
-        value: 'neglect',
-        title: 'Workshop 2, Participant 11',
-        text: 'Added youth spaces and suggested removing high-rises because of wind effects.',
-        meta: 'Insight: experiential understanding of architecture.'
-      },
-      {
-        value: 'greed',
-        title: 'Workshop 2, Participant 12',
-        text: 'Added youth spaces and linked redevelopment to economic motivations and parking fines.',
-        meta: 'Insight: economic narratives dominate perception.'
-      },
-      {
-        value: 'belonging',
-        title: 'Workshop 2, Participant 13',
-        text: 'Added gathering spaces and suggested removing unaffordable businesses targeting outsiders.',
-        meta: 'Insight: affordability shapes belonging.'
-      },
-      {
-        value: 'care',
-        title: 'Workshop 2, Participant 14',
-        text: 'Added gathering spaces and swimming pool and expressed fear of development impacting nature.',
-        meta: 'Insight: environmental preservation tied to identity.'
-      },
-      {
-        value: 'efficiency',
-        title: 'Workshop 2, Participant 15',
-        text: 'Added community spaces and more high schools.',
-        meta: 'Insight: future-oriented priorities focused on education.'
-      },
-      {
-        value: 'efficiency',
-        title: 'Workshop 2, Participant 16',
-        text: 'Added affordable food stalls and swimming pool and criticised expensive community spaces.',
-        meta: 'Insight: economic accessibility shapes inclusion.'
-      },
-      {
-        value: 'belonging',
-        title: 'Workshop 2, Participant 17',
-        text: 'Added restaurants and social venues.',
-        meta: 'Insight: everyday leisure spaces matter.'
-      },
-      {
-        value: 'efficiency',
-        title: 'Workshop 2, Participant 18',
-        text: 'Added indoor play areas and noted the lack of winter facilities.',
-        meta: 'Insight: seasonal usability influences value.'
-      },
-      {
-        value: 'care',
-        title: 'Workshop 2, Participant 19',
-        text: 'Added bowling and cinema and suggested removing fireworks in woodland.',
-        meta: 'Insight: play and environmental comfort are intertwined.'
-      },
-      {
-        value: 'neglect',
-        title: 'Workshop 2, Participant 20',
-        text: 'Added bowling and swimming pool and suggested removing tall buildings.',
-        meta: 'Insight: scale intuitively linked to comfort.'
-      },
-      {
-        value: 'care',
-        title: 'Workshop 2, Participant 21',
-        text: 'Added swimming pool and skate park and suggested removing theft.',
-        meta: 'Insight: safety and play overlap.'
-      },
-      {
-        value: 'care',
-        title: 'Workshop 2, Participant 22',
-        text: 'Added skate park.',
-        meta: 'Insight: active play infrastructure is essential.'
-      },
-      {
-        value: 'belonging',
-        title: 'Workshop 2, Participant 23',
-        text: 'Added football pitch and sports facilities.',
-        meta: 'Insight: sport functions as social connector.'
-      },
-      {
-        value: 'trust',
-        title: 'Workshop 2, local resident misunderstanding',
-        text: 'An interaction escalated when a local resident assumed the project was affiliated with British Land.',
-        meta: 'Insight: trust and mistrust toward development actors shape engagement dynamics.'
-      },
-      {
-        value: 'trust',
-        title: 'Workshop 3, direct address prompt',
-        text: 'Participants were asked what they would like to say directly to British Land or Southwark Council. The prompt shifted the atmosphere toward accountability, hesitation, frustration, and direct articulation.',
-        meta: 'Prompt: British Land / Southwark Council.'
-      },
-      {
-        value: 'neglect',
-        title: 'Workshop 3, collective response map',
-        text: 'Responses included: Corner Corner is disappointing. More playgrounds. Do not ignore history. They dont value locals. Shade Pearson Park. Traffic is horrific. More parks. C10 10pm Salter Road bus wakes up child. Shops sell Pokemon. Bring back cinema. Bring back bowling. Stop gentrification. Fix pool. Stop overbuilding. Stop the concrete jungle. Double this opinion. Teen spaces.',
-        meta: '10 engagement responses.'
-      },
-      {
-        value: 'trust',
-        title: 'Workshop 3, Participant 01',
-        text: 'Highlighted late-night noise from the C10 bus at around 10pm waking his child on Salter Road, alongside concerns about lack of entertainment spaces and the need to repair the local pool. He raised issues of gentrification, loss of historical elements, and poor connectivity, referencing the Rotherhithe Bridge and accessibility challenges. He expressed uncertainty about increasing tourism and ended by asking where he might move to find more affordable housing.',
-        meta: 'Insight: redevelopment enters domestic life through noise, childcare, and affordability.'
-      },
-      {
-        value: 'belonging',
-        title: 'Workshop 3, Participant 02',
-        text: 'Described Corner Corner as disappointing, requesting bowling, cinema, improved food markets, and dedicated teen spaces. She noted that the area had been discovered and was now being taken over, implying loss of local ownership.',
-        meta: 'Insight: increased visibility can be experienced as displacement.'
-      },
-      {
-        value: 'neglect',
-        title: 'Workshop 3, Participant 03',
-        text: 'Said he had lived in the area for 24 years and described the transformation as turning into a concrete jungle, expressing strong concern about the reduction of greenery.',
-        meta: 'Insight: redevelopment is not welcomed where nature feels threatened.'
-      },
-      {
-        value: 'engagement',
-        title: 'Workshop 3, Participant 04',
-        text: 'Noted that redevelopment does not significantly affect her because it is far from where she lives, and she has lived in the area for 10 years.',
-        meta: 'Insight: proximity shapes perception and redevelopment is experienced unevenly across space.'
-      },
-      {
-        value: 'engagement',
-        title: 'Workshop 3, Participant 05',
-        text: 'Declined participation, stating they were not interested in engaging.',
-        meta: 'Insight: non-participation can itself be a response.'
-      },
-      {
-        value: 'engagement',
-        title: 'Workshop 3, Participant 06',
-        text: 'Said things feel great for now, valuing the area’s quietness but uncertain about future changes.',
-        meta: 'Insight: ambivalence is a meaningful position.'
-      },
-      {
-        value: 'neglect',
-        title: 'Workshop 3, Participant 07',
-        text: 'Expressed strong concern that redevelopment is taking away our hidden gem, opposing further construction, especially glass buildings and new infrastructure. They criticised sustainability language as justification for expansion, mentioned a new Tesco near their home as unwanted change, and emphasised protecting nature and avoiding overcrowding.',
-        meta: 'Insight: tension between official improvement narratives and local perceptions of environmental and cultural erosion.'
-      },
-      {
-        value: 'trust',
-        title: 'Workshop 3, Participant 08',
-        text: 'Responded with visible anger, saying he had been asked to pay £4,000 to become councillor and £1,500 to obtain a driving licence, reading these experiences as corruption. He shared the project with a friend who agreed with his frustrations.',
-        meta: 'Insight: deep mistrust of institutional processes and systemic injustice.'
-      },
-      {
-        value: 'efficiency',
-        title: 'Workshop 3, Participant 09',
-        text: 'Criticised Corner Corner’s lighting and food, requested restoration of lost amenities, and specifically mentioned fixing the pool.',
-        meta: 'Insight: new spaces are judged through everyday usability.'
-      },
-      {
-        value: 'efficiency',
-        title: 'Workshop 3, Participant 10',
-        text: 'Described severe traffic congestion, recounting an incident where a driver left their car, went to McDonald’s, and returned while traffic had not moved, raising concerns about emergency vehicle access.',
-        meta: 'Insight: personal anecdotes act as evidence of infrastructural stress.'
-      },
-      {
-        value: 'efficiency',
-        title: 'Workshop 3, Dockland Settlement staff member',
-        text: 'Explained how activities are funded. When external funding is available, activities are free. When funding is insufficient, a small participation fee is introduced. Funding typically lasts around one year. When asked whether a small fixed fee such as five pounds would reduce participation, she said it likely would not discourage attendance.',
-        meta: 'Insight: community activity is structured around short-term funding cycles and accessibility.'
-      }
-    ];
-
-    let activeFilter = 'all';
-
-    function renderValueMaps() {
-      const filtered = activeFilter === 'all' || activeFilter === 'engagement' || activeFilter === 'memory'
-        ? valueMaps
-        : valueMaps.filter(item => item.id === activeFilter);
-
-      valueMapCards.innerHTML = filtered.map(item => `
-        <div class="card">
-          <h3>${item.title}</h3>
-          <p>${item.quotes.join('\\n\\n')}</p>
-        </div>
-      `).join('');
-    }
-
-    function renderEngagements() {
-      const filtered = activeFilter === 'all'
-        ? engagements
-        : engagements.filter(item => item.value === activeFilter);
-
-      engagementList.innerHTML = filtered.map(item => `
-        <div class="item">
-          <strong>${item.title}</strong>
-          <p>${item.text}</p>
-          <div class="meta">${item.meta}</div>
-        </div>
-      `).join('');
-    }
-
-    chips.forEach(chip => {
-      chip.addEventListener('click', () => {
-        chips.forEach(c => c.classList.remove('active'));
-        chip.classList.add('active');
-        activeFilter = chip.dataset.filter;
-        renderValueMaps();
-        renderEngagements();
-      });
+    clearNodesButton.addEventListener('click', () => {
+      localStorage.removeItem(STORAGE_KEY);
+      renderValueMaps();
+      showStatus('Added nodes cleared.');
     });
 
     renderValueMaps();
-    renderEngagements();
   </script>
 </body>
 </html>
