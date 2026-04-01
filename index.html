@@ -8,30 +8,11 @@
   <script type="module" src="https://ajax.googleapis.com/ajax/libs/model-viewer/4.0.0/model-viewer.min.js"></script>
 
   <style>
-    :root{
-      --bg:#f2f2f2;
-      --panel:#eaeaea;
-      --text:#111;
-      --muted:#666;
-      --cyan:#5f8788;
-
-      --care:#4f7c68;
-      --neglect:#9b7a32;
-      --greed:#6e3a3a;
-      --belonging:#5f7d6d;
-      --trust:#7b6332;
-      --efficiency:#8a7a3a;
-    }
-
-    *{
-      box-sizing:border-box;
-    }
-
     html, body{
       margin:0;
       font-family:Arial, sans-serif;
-      background:var(--bg);
-      color:var(--text);
+      background:#f2f2f2;
+      color:#111;
     }
 
     model-viewer{
@@ -42,26 +23,23 @@
 
     .wrap{
       padding:16px;
-      max-width:1100px;
+      max-width:900px;
       margin:auto;
     }
 
     h1{
       margin:0;
-      font-size:32px;
-      line-height:1;
+      font-size:30px;
     }
 
     p{
-      margin:8px 0 16px;
-      color:var(--muted);
+      margin:6px 0 16px;
+      color:#666;
       font-size:14px;
     }
 
     .controls{
-      display:flex;
-      gap:10px;
-      margin-bottom:16px;
+      margin-bottom:14px;
     }
 
     .main-btn{
@@ -77,113 +55,58 @@
 
     .value-picker{
       display:grid;
-      grid-template-columns:repeat(3, minmax(0,1fr));
+      grid-template-columns:repeat(3, 1fr);
       gap:10px;
       margin-bottom:12px;
     }
 
     .value-btn{
       border:none;
-      padding:14px 16px;
-      border-radius:16px;
+      padding:14px;
+      border-radius:14px;
       cursor:pointer;
-      color:white;
+      background:#ddd;
+      color:#111;
       font-weight:bold;
       font-size:14px;
       text-transform:capitalize;
-      opacity:0.72;
-      transform:scale(1);
-      transition:opacity .15s ease, transform .15s ease, box-shadow .15s ease;
-      box-shadow:none;
-    }
-
-    .value-btn:hover{
-      opacity:0.9;
+      opacity:0.7;
+      transition:all .15s ease;
     }
 
     .value-btn.active{
       opacity:1;
-      transform:scale(1.02);
-      box-shadow:0 10px 24px rgba(0,0,0,0.14);
-      outline:3px solid rgba(0,0,0,0.08);
+      background:#bbb;
+      transform:scale(1.03);
+      box-shadow:0 8px 20px rgba(0,0,0,0.15);
     }
 
-    .care{background:var(--care);}
-    .neglect{background:var(--neglect);}
-    .greed{background:var(--greed);}
-    .belonging{background:var(--belonging);}
-    .trust{background:var(--trust);}
-    .efficiency{background:var(--efficiency);}
-
-    .selected-label{
-      margin:4px 0 12px;
+    .selected{
       font-size:13px;
-      color:var(--muted);
-      min-height:18px;
+      color:#666;
+      margin-bottom:10px;
     }
 
     textarea{
       width:100%;
       padding:14px;
-      border-radius:14px;
+      border-radius:12px;
       border:1px solid #ddd;
       margin-bottom:10px;
       font-size:14px;
-      min-height:110px;
+      min-height:100px;
       resize:vertical;
-      font-family:Arial, sans-serif;
     }
 
     .status{
       font-size:13px;
-      color:var(--muted);
-      margin-top:8px;
-      min-height:16px;
+      color:#666;
+      margin-top:6px;
     }
 
-    .grid{
-      display:grid;
-      grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
-      gap:12px;
-      margin-top:22px;
-    }
-
-    .value{
-      background:var(--panel);
-      border-radius:16px;
-      padding:12px;
-    }
-
-    .value h3{
-      margin:0 0 10px;
-      font-size:16px;
-      text-transform:capitalize;
-    }
-
-    .entry{
-      background:var(--cyan);
-      color:white;
-      padding:9px 10px;
-      border-radius:10px;
-      font-size:13px;
-      margin-bottom:7px;
-      line-height:1.35;
-      word-break:break-word;
-    }
-
-    .empty{
-      color:var(--muted);
-      font-size:13px;
-    }
-
-    @media (max-width:700px){
+    @media (max-width:600px){
       .value-picker{
-        grid-template-columns:repeat(2, minmax(0,1fr));
-      }
-
-      model-viewer{
-        height:58vh;
-        min-height:340px;
+        grid-template-columns:repeat(2, 1fr);
       }
     }
   </style>
@@ -192,7 +115,7 @@
 
   <model-viewer
     id="viewer"
-    src="./model.glb?v=4"
+    src="./model.glb?v=5"
     ar
     ar-modes="webxr scene-viewer quick-look"
     camera-controls
@@ -211,22 +134,20 @@
     </div>
 
     <div class="value-picker" id="valuePicker">
-      <button class="value-btn care" data-value="care" type="button">Care</button>
-      <button class="value-btn neglect" data-value="neglect" type="button">Neglect</button>
-      <button class="value-btn greed" data-value="greed" type="button">Greed</button>
-      <button class="value-btn belonging" data-value="belonging" type="button">Belonging</button>
-      <button class="value-btn trust" data-value="trust" type="button">Trust</button>
-      <button class="value-btn efficiency" data-value="efficiency" type="button">Efficiency</button>
+      <button class="value-btn" data-value="care">Care</button>
+      <button class="value-btn" data-value="neglect">Neglect</button>
+      <button class="value-btn" data-value="greed">Greed</button>
+      <button class="value-btn" data-value="belonging">Belonging</button>
+      <button class="value-btn" data-value="trust">Trust</button>
+      <button class="value-btn" data-value="efficiency">Efficiency</button>
     </div>
 
-    <div class="selected-label" id="selectedLabel">No value selected</div>
+    <div class="selected" id="selectedLabel">No value selected</div>
 
-    <textarea id="input" placeholder="Write your thought..." required></textarea>
+    <textarea id="input" placeholder="Write your thought..."></textarea>
 
     <button class="main-btn" id="send">Send</button>
     <div class="status" id="status"></div>
-
-    <div class="grid" id="grid"></div>
   </div>
 
   <script>
@@ -234,65 +155,30 @@
     const arBtn = document.getElementById("arBtn");
     const send = document.getElementById("send");
     const input = document.getElementById("input");
-    const grid = document.getElementById("grid");
     const status = document.getElementById("status");
     const valuePicker = document.getElementById("valuePicker");
     const selectedLabel = document.getElementById("selectedLabel");
 
-    const STORAGE = "value-lab";
-    const values = ["care","neglect","greed","belonging","trust","efficiency"];
     let selectedValue = "";
-
-    function getData(){
-      return JSON.parse(localStorage.getItem(STORAGE) || "[]");
-    }
-
-    function saveData(data){
-      localStorage.setItem(STORAGE, JSON.stringify(data));
-    }
-
-    function render(){
-      const data = getData();
-
-      grid.innerHTML = values.map(v=>{
-        const items = data.filter(d=>d.value===v);
-        return `
-          <div class="value">
-            <h3>${v}</h3>
-            ${
-              items.length
-                ? items.map(i=>`<div class="entry">${i.text}</div>`).join("")
-                : `<div class="empty">No thoughts yet.</div>`
-            }
-          </div>
-        `;
-      }).join("");
-    }
-
-    function updateSelectedUI(){
-      document.querySelectorAll(".value-btn").forEach(btn=>{
-        btn.classList.toggle("active", btn.dataset.value === selectedValue);
-      });
-
-      selectedLabel.textContent = selectedValue
-        ? `Selected value: ${selectedValue}`
-        : "No value selected";
-    }
 
     valuePicker.addEventListener("click", (e)=>{
       const btn = e.target.closest(".value-btn");
       if(!btn) return;
+
       selectedValue = btn.dataset.value;
-      updateSelectedUI();
+
+      document.querySelectorAll(".value-btn").forEach(b=>{
+        b.classList.remove("active");
+      });
+
+      btn.classList.add("active");
+
+      selectedLabel.textContent = "Selected value: " + selectedValue;
       status.textContent = "";
     });
 
     arBtn.onclick = async ()=>{
-      try{
-        if(viewer.activateAR) await viewer.activateAR();
-      }catch{
-        status.textContent = "AR could not open";
-      }
+      if(viewer.activateAR) await viewer.activateAR();
     };
 
     send.onclick = async ()=>{
@@ -308,10 +194,6 @@
         return;
       }
 
-      const data = getData();
-      data.push({ value:selectedValue, text });
-      saveData(data);
-
       try{
         const formData = new FormData();
         formData.append("message", `[${selectedValue}] ${text}`);
@@ -324,15 +206,11 @@
 
         status.textContent = "Sent";
       }catch{
-        status.textContent = "Saved locally";
+        status.textContent = "Error sending";
       }
 
       input.value = "";
-      render();
     };
-
-    updateSelectedUI();
-    render();
   </script>
 
 </body>
